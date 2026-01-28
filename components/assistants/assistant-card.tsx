@@ -1,5 +1,7 @@
 import { type Assistant } from '@/db/schema';
-import { MessageSquare, FileText } from 'lucide-react';
+import { Bot } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import Link from 'next/link';
 
 interface AssistantCardProps {
@@ -21,24 +23,26 @@ export function AssistantCard({ assistant, documentCount }: AssistantCardProps) 
                             <Badge variant="secondary">Público</Badge>
                         )}
                     </div>
-                </div>
+                </CardHeader>
 
-                {assistant.description && (
-                    <p className="text-gray-600 text-sm line-clamp-2">{assistant.description}</p>
-                )}
-
-                <div className="mt-4 flex items-center gap-2">
-                    {assistant.isPublic === 1 ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
-                            Público
-                        </span>
-                    ) : (
-                        <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
-                            Privado
-                        </span>
+                <CardContent>
+                    {assistant.description && (
+                        <p className="text-gray-600 text-sm line-clamp-2 mb-4">{assistant.description}</p>
                     )}
-                </div>
-            </div>
+
+                    <div className="flex items-center gap-2">
+                        {assistant.isPublic === 1 ? (
+                            <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                                Público
+                            </span>
+                        ) : (
+                            <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
+                                Privado
+                            </span>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
         </Link>
     );
 }

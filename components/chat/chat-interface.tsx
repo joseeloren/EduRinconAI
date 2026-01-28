@@ -2,6 +2,7 @@
 
 import { useChat } from 'ai/react';
 import { Send, FileText } from 'lucide-react';
+import { MarkdownRenderer } from './markdown-renderer';
 import { useEffect, useRef } from 'react';
 
 interface ChatInterfaceProps {
@@ -42,11 +43,13 @@ export function ChatInterface({ assistantId, chatId }: ChatInterfaceProps) {
                     >
                         <div
                             className={`max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user'
-                                    ? 'bg-blue-600 text-white'
-                                    : 'bg-gray-100 text-gray-900'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-gray-100 text-gray-900'
                                 }`}
                         >
-                            <p className="whitespace-pre-wrap">{message.content}</p>
+                            <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed">
+                                <MarkdownRenderer content={message.content} />
+                            </div>
 
                             {/* Show sources if available */}
                             {message.role === 'assistant' && (message as any).sources && (

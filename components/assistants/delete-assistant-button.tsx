@@ -35,6 +35,15 @@ export function DeleteAssistantButton({
             setLoading(true);
             await onDelete();
         } catch (error) {
+            // Next.js redirect() throws a special error that should not be caught
+            // Check if it's a Next.js redirect error (NEXT_REDIRECT)
+            if (error && typeof error === 'object' && 'digest' in error &&
+                typeof (error as any).digest === 'string' &&
+                (error as any).digest.includes('NEXT_REDIRECT')) {
+                // This is a redirect, not a real error - rethrow it
+                throw error;
+            }
+
             console.error('Error deleting assistant:', error);
             alert('Error al eliminar el asistente');
         } finally {

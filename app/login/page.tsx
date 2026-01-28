@@ -43,7 +43,7 @@ export default function LoginPage() {
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-4">
                         <Image
-                            src="/logo-ies-rincon.png"
+                            src="/logo-ies-rincon.jpg"
                             alt="IES El Rincón"
                             width={80}
                             height={80}

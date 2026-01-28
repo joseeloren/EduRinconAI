@@ -60,7 +60,7 @@ export function Navbar({ user }: NavbarProps) {
                 {/* Logo */}
                 <div className="mr-8 flex items-center space-x-2">
                     <Image
-                        src="/logo-ies-rincon.png"
+                        src="/logo-ies-rincon.jpg"
                         alt="IES El Rincón"
                         width={32}
                         height={32}

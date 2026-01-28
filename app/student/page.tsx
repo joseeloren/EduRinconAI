@@ -70,7 +70,11 @@ export default async function StudentDashboard() {
                                     </h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {assignedAssistants.map((assistant) => (
-                                            <AssistantCard key={assistant.id} assistant={assistant} />
+                                            <AssistantCard
+                                                key={assistant.id}
+                                                assistant={assistant}
+                                                userRole="STUDENT"
+                                            />
                                         ))}
                                     </div>
                                 </div>
@@ -83,7 +87,11 @@ export default async function StudentDashboard() {
                                     </h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {uniquePublic.map((assistant) => (
-                                            <AssistantCard key={assistant.id} assistant={assistant} />
+                                            <AssistantCard
+                                                key={assistant.id}
+                                                assistant={assistant}
+                                                userRole="STUDENT"
+                                            />
                                         ))}
                                     </div>
                                 </div>

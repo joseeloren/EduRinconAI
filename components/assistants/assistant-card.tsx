@@ -7,11 +7,17 @@ import Link from 'next/link';
 interface AssistantCardProps {
     assistant: Assistant;
     documentCount?: number;
+    userRole?: 'TEACHER' | 'STUDENT' | 'ADMIN';
 }
 
-export function AssistantCard({ assistant, documentCount }: AssistantCardProps) {
+export function AssistantCard({ assistant, documentCount, userRole = 'TEACHER' }: AssistantCardProps) {
+    // Students go to chat, teachers go to management
+    const href = userRole === 'STUDENT'
+        ? `/chat/${assistant.id}`
+        : `/teacher/assistants/${assistant.id}`;
+
     return (
-        <Link href={`/teacher/assistants/${assistant.id}`}>
+        <Link href={href}>
             <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardHeader>
                     <div className="flex items-start justify-between">

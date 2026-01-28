@@ -9,7 +9,7 @@ import { canAccessAssistant } from '@/lib/auth/roles';
 
 // Configure OpenAI provider for Ollama/LocalAI
 const ollama = createOpenAI({
-    baseURL: process.env.LLM_API_BASE_URL,
+    baseURL: process.env.LLM_API_BASE_URL || 'http://localhost:11434/v1',
     apiKey: 'ollama',
 });
 
@@ -136,7 +136,21 @@ export async function POST(request: Request) {
 
         return result.toDataStreamResponse();
     } catch (error) {
-        console.error('Chat API error:', error);
-        return new Response('Internal Server Error', { status: 500 });
+        console.error('Chat API Error Details:', {
+            error,
+            message: error instanceof Error ? error.message : 'Unknown error',
+            stack: error instanceof Error ? error.stack : undefined,
+        });
+
+        return new Response(
+            JSON.stringify({
+                error: 'Internal Server Error',
+                details: error instanceof Error ? error.message : String(error)
+            }),
+            {
+                status: 500,
+                headers: { 'Content-Type': 'application/json' }
+            }
+        );
     }
 }

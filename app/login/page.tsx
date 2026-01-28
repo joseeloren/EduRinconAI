@@ -90,13 +90,48 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                <div className="mt-6 text-center text-sm text-gray-600">
-                    <p>Credenciales de demostración:</p>
-                    <p className="mt-1">
-                        <strong>Profesor:</strong> teacher@iesrincon.es / password
+                {/* Quick Login Section */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                    <p className="text-center text-sm font-medium text-gray-700 mb-3">
+                        Acceso Rápido (Testing)
                     </p>
-                    <p>
-                        <strong>Alumno:</strong> student@iesrincon.es / password
+                    <div className="grid grid-cols-3 gap-2">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEmail('admin@iesrincon.es');
+                                setPassword('password');
+                            }}
+                            className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+                            disabled={loading}
+                        >
+                            👤 Admin
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEmail('teacher@iesrincon.es');
+                                setPassword('password');
+                            }}
+                            className="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
+                            disabled={loading}
+                        >
+                            👨‍🏫 Profesor
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setEmail('student@iesrincon.es');
+                                setPassword('password');
+                            }}
+                            className="px-3 py-2 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
+                            disabled={loading}
+                        >
+                            🎓 Alumno
+                        </button>
+                    </div>
+                    <p className="text-center text-xs text-gray-500 mt-2">
+                        Click para auto-completar credenciales
                     </p>
                 </div>
             </div>

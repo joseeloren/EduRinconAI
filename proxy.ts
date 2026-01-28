@@ -8,7 +8,7 @@ const adminRoutes = ['/admin'];
 const teacherRoutes = ['/teacher'];
 const studentRoutes = ['/student'];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const session = await auth();
     const { pathname } = request.nextUrl;
 

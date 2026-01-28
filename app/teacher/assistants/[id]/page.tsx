@@ -15,12 +15,13 @@ import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 export default async function AssistantManagementPage({ params }: PageProps) {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role === 'STUDENT') {
@@ -28,7 +29,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
     }
 
     const assistant = await db.query.assistants.findFirst({
-        where: eq(assistants.id, params.id),
+        where: eq(assistants.id, id),
         with: {
             creator: {
                 columns: {
@@ -56,7 +57,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
         'use server';
 
         const response = await fetch(
-            `${process.env.NEXTAUTH_URL}/api/assistants/${params.id}`,
+            `${process.env.NEXTAUTH_URL}/api/assistants/${id}`,
             {
                 method: 'PUT',
                 headers: {
@@ -73,7 +74,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
             throw new Error('Failed to update assistant');
         }
 
-        redirect(`/teacher/assistants/${params.id}`);
+        redirect(`/teacher/assistants/${id}`);
     }
 
     return (
@@ -130,7 +131,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <UploadZone assistantId={params.id} />
+                            <UploadZone assistantId={id} />
                         </CardContent>
                     </Card>
 
@@ -142,7 +143,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DocumentList assistantId={params.id} />
+                            <DocumentList assistantId={id} />
                         </CardContent>
                     </Card>
                 </TabsContent>
@@ -157,7 +158,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <StudentAssignment assistantId={params.id} />
+                            <StudentAssignment assistantId={id} />
                         </CardContent>
                     </Card>
                 </TabsContent>

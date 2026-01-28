@@ -7,12 +7,13 @@ import { Navbar } from '@/components/ui/navbar';
 import { UserForm } from '@/components/admin/user-form';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 export default async function EditUserPage({ params }: PageProps) {
+    const { id } = await params;
     const session = await auth();
 
     if (!session?.user || session.user.role !== 'ADMIN') {
@@ -20,7 +21,7 @@ export default async function EditUserPage({ params }: PageProps) {
     }
 
     const user = await db.query.users.findFirst({
-        where: eq(users.id, params.id),
+        where: eq(users.id, id),
         columns: {
             id: true,
             name: true,

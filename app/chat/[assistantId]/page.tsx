@@ -10,8 +10,9 @@ import { ArrowLeft, FileText } from 'lucide-react';
 export default async function ChatPage({
     params,
 }: {
-    params: { assistantId: string };
+    params: Promise<{ assistantId: string }>;
 }) {
+    const { assistantId } = await params;
     const session = await auth();
 
     if (!session?.user) {
@@ -21,7 +22,7 @@ export default async function ChatPage({
     const [assistant] = await db
         .select()
         .from(assistants)
-        .where(eq(assistants.id, params.assistantId))
+        .where(eq(assistants.id, assistantId))
         .limit(1);
 
     if (!assistant) {
@@ -31,7 +32,7 @@ export default async function ChatPage({
     const assistantDocuments = await db
         .select()
         .from(documents)
-        .where(eq(documents.assistantId, params.assistantId));
+        .where(eq(documents.assistantId, assistantId));
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">
@@ -62,7 +63,7 @@ export default async function ChatPage({
 
             {/* Chat Interface */}
             <div className="flex-1 overflow-hidden">
-                <ChatInterface assistantId={params.assistantId} />
+                <ChatInterface assistantId={assistantId} />
             </div>
         </div>
     );

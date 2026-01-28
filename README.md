@@ -184,7 +184,7 @@ npm run db:studio     # Abrir Drizzle Studio
 
 ## 📦 Tecnologías Principales
 
-- **Framework**: Next.js 15 (App Router)
+- **Framework**: Next.js 16 (App Router)
 - **TypeScript**: Type safety
 - **Tailwind CSS**: Styling
 - **Shadcn/UI**: Componentes UI

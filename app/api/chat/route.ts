@@ -114,7 +114,7 @@ export async function POST(request: Request) {
         });
 
         // Stream response
-        const result = streamText({
+        const result = await streamText({
             model: ollama(process.env.LLM_MODEL_NAME || 'llama3.2'),
             messages: allMessages,
             temperature: (assistant.temperature || 70) / 100,

@@ -114,8 +114,11 @@ export async function POST(request: Request) {
         });
 
         // Stream response
+        const modelName = process.env.LLM_MODEL_NAME || 'llama3.2';
+        console.log('Using LLM model:', modelName);
+
         const result = await streamText({
-            model: ollama(process.env.LLM_MODEL_NAME || 'llama3.2'),
+            model: ollama(modelName),
             messages: allMessages,
             temperature: (assistant.temperature || 70) / 100,
             maxTokens: 2000,

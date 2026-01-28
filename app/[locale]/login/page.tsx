@@ -16,7 +16,6 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
-        // ... (existing logic)
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -29,23 +28,20 @@ export default function LoginPage() {
             });
 
             if (result?.error) {
-                setError('Credenciales inválidas'); // TODO: Translate error messages
+                setError(t('invalidCredentials'));
             } else {
                 router.push('/');
                 router.refresh();
             }
         } catch (err) {
-            setError('Error al iniciar sesión');
+            setError(t('loginError'));
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 relative">
-            <div className="absolute top-4 right-4">
-                <LanguageSwitcher />
-            </div>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
             <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-4">
@@ -58,16 +54,19 @@ export default function LoginPage() {
                             unoptimized
                         />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">MentorAI</h1>
-                    <p className="text-gray-600 mt-2">Tu asistente educativo inteligente</p>
                     <h2 className="text-xl font-semibold text-gray-800 mt-4">{t('title')}</h2>
                     <p className="text-sm text-gray-500">{t('subtitle')}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
+                    {/* Language Switcher */}
+                    <div className="flex justify-end">
+                        <LanguageSwitcher />
+                    </div>
+
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                            Correo electrónico
+                            {t('email')}
                         </label>
                         <input
                             id="email"
@@ -82,7 +81,7 @@ export default function LoginPage() {
 
                     <div>
                         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                            Contraseña
+                            {t('password')}
                         </label>
                         <input
                             id="password"
@@ -106,14 +105,14 @@ export default function LoginPage() {
                         disabled={loading}
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                        {loading ? t('loggingIn') : t('loginButton')}
                     </button>
                 </form>
 
                 {/* Quick Login Section */}
                 <div className="mt-6 pt-6 border-t border-gray-200">
                     <p className="text-center text-sm font-medium text-gray-700 mb-3">
-                        Acceso Rápido (Testing)
+                        {t('quickAccess')}
                     </p>
                     <div className="grid grid-cols-3 gap-2">
                         <button
@@ -125,7 +124,7 @@ export default function LoginPage() {
                             className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
                             disabled={loading}
                         >
-                            👤 Admin
+                            👤 {t('admin')}
                         </button>
                         <button
                             type="button"
@@ -136,7 +135,7 @@ export default function LoginPage() {
                             className="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
                             disabled={loading}
                         >
-                            👨‍🏫 Profesor
+                            👨‍🏫 {t('teacher')}
                         </button>
                         <button
                             type="button"
@@ -147,11 +146,11 @@ export default function LoginPage() {
                             className="px-3 py-2 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
                             disabled={loading}
                         >
-                            🎓 Alumno
+                            🎓 {t('student')}
                         </button>
                     </div>
                     <p className="text-center text-xs text-gray-500 mt-2">
-                        Click para auto-completar credenciales
+                        {t('clickToFill')}
                     </p>
                 </div>
             </div>

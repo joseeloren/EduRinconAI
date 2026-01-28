@@ -88,6 +88,17 @@
     },
     "Login": {
         "title": "Bienvenido",
-        "subtitle": "Inicia sesión en tu cuenta"
+        "subtitle": "Inicia sesión en tu cuenta",
+        "email": "Correo electrónico",
+        "password": "Contraseña",
+        "loginButton": "Iniciar sesión",
+        "loggingIn": "Iniciando sesión...",
+        "invalidCredentials": "Credenciales inválidas",
+        "loginError": "Error al iniciar sesión",
+        "quickAccess": "Acceso Rápido (Testing)",
+        "clickToFill": "Click para auto-completar credenciales",
+        "admin": "Admin",
+        "teacher": "Profesor",
+        "student": "Alumno"
     }
 }

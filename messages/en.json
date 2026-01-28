@@ -88,6 +88,17 @@
     },
     "Login": {
         "title": "Welcome",
-        "subtitle": "Sign in to your account"
+        "subtitle": "Sign in to your account",
+        "email": "Email",
+        "password": "Password",
+        "loginButton": "Sign in",
+        "loggingIn": "Signing in...",
+        "invalidCredentials": "Invalid credentials",
+        "loginError": "Login error",
+        "quickAccess": "Quick Access (Testing)",
+        "clickToFill": "Click to auto-fill credentials",
+        "admin": "Admin",
+        "teacher": "Teacher",
+        "student": "Student"
     }
 }

@@ -84,7 +84,29 @@
         "cancel": "Cancel",
         "saving": "Saving...",
         "saveChanges": "Save Changes",
-        "createAssistant": "Create Assistant"
+        "createAssistant": "Create Assistant",
+        "errorSaving": "Error saving assistant"
+    },
+    "assistantManagement": {
+        "backToDashboard": "Back to Dashboard",
+        "createdBy": "Created by",
+        "tabInfo": "Information",
+        "tabDocuments": "Documents",
+        "tabStudents": "Students",
+        "uploadDocuments": "Upload Documents",
+        "uploadDescription": "Documents will be automatically processed to improve assistant responses using RAG",
+        "uploadedDocuments": "Uploaded Documents",
+        "manageDocuments": "Manage documents associated with this assistant",
+        "assignStudents": "Assign Students",
+        "assignDescription": "Control which students have access to this assistant",
+        "deleteButton": "Delete Assistant",
+        "deleteTitle": "Are you sure?",
+        "deleteDescription": "This action cannot be undone. This will permanently delete the assistant",
+        "deleteDescriptionExtra": "and all its associated data (documents, assignments, chats).",
+        "cancel": "Cancel",
+        "deleting": "Deleting...",
+        "delete": "Delete",
+        "deleteError": "Error deleting assistant"
     },
     "Login": {
         "title": "Welcome",
@@ -100,5 +122,9 @@
         "admin": "Admin",
         "teacher": "Teacher",
         "student": "Student"
+    },
+    "createPage": {
+        "title": "Create New Assistant",
+        "subtitle": "Customize an AI assistant for your students"
     }
 }

@@ -14,6 +14,8 @@ import { Button } from '@/components/ui/button';
 import { DeleteAssistantButton } from '@/components/assistants/delete-assistant-button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { Navbar } from '@/components/ui/navbar';
+import { getTranslations } from 'next-intl/server';
 
 interface PageProps {
     params: Promise<{
@@ -91,101 +93,105 @@ export default async function AssistantManagementPage({ params }: PageProps) {
         redirect('/teacher');
     }
 
+    const t = await getTranslations('assistantManagement');
+
     return (
-        <div className="container max-w-6xl py-8">
-            {/* Header */}
-            <div className="mb-8">
-                <Link href="/teacher">
-                    <Button variant="ghost" size="sm" className="mb-4">
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Volver al Dashboard
-                    </Button>
-                </Link>
-                <div className="flex items-start justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold">{assistant.name}</h1>
-                        {assistant.description && (
-                            <p className="text-muted-foreground mt-2">{assistant.description}</p>
-                        )}
-                        <div className="mt-4 text-sm text-muted-foreground">
-                            Creado por {assistant.creator.name}
+        <>
+            <Navbar user={session.user} />
+            <div className="container max-w-6xl py-8">
+                {/* Header */}
+                <div className="mb-8">
+                    <Link href="/teacher">
+                        <Button variant="ghost" size="sm" className="mb-4">
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            {t('backToDashboard')}
+                        </Button>
+                    </Link>
+                    <div className="flex items-start justify-between">
+                        <div>
+                            <h1 className="text-3xl font-bold">{assistant.name}</h1>
+                            {assistant.description && (
+                                <p className="text-muted-foreground mt-2">{assistant.description}</p>
+                            )}
+                            <div className="mt-4 text-sm text-muted-foreground">
+                                {t('createdBy')} {assistant.creator.name}
+                            </div>
                         </div>
+                        <DeleteAssistantButton
+                            assistantId={assistant.id}
+                            assistantName={assistant.name}
+                            onDelete={handleDeleteAssistant}
+                        />
                     </div>
-                    <DeleteAssistantButton
-                        assistantId={assistant.id}
-                        assistantName={assistant.name}
-                        onDelete={handleDeleteAssistant}
-                    />
                 </div>
+
+                {/* Tabs */}
+                <Tabs defaultValue="info" className="space-y-6">
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="info">{t('tabInfo')}</TabsTrigger>
+                        <TabsTrigger value="documents">{t('tabDocuments')}</TabsTrigger>
+                        <TabsTrigger value="students">{t('tabStudents')}</TabsTrigger>
+                    </TabsList>
+
+                    {/* Information Tab */}
+                    <TabsContent value="info">
+                        <AssistantForm
+                            initialData={{
+                                id: assistant.id,
+                                name: assistant.name,
+                                description: assistant.description || '',
+                                systemPrompt: assistant.systemPrompt,
+                                temperature: assistant.temperature / 100,
+                                isPublic: assistant.isPublic === 1,
+                            }}
+                            onSubmit={handleUpdateAssistant}
+                            isEditing
+                        />
+                    </TabsContent>
+
+                    {/* Documents Tab */}
+                    <TabsContent value="documents" className="space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('uploadDocuments')}</CardTitle>
+                                <CardDescription>
+                                    {t('uploadDescription')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <UploadZone assistantId={id} />
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('uploadedDocuments')}</CardTitle>
+                                <CardDescription>
+                                    {t('manageDocuments')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <DocumentList assistantId={id} />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+
+                    {/* Students Tab */}
+                    <TabsContent value="students">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>{t('assignStudents')}</CardTitle>
+                                <CardDescription>
+                                    {t('assignDescription')}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <StudentAssignment assistantId={id} />
+                            </CardContent>
+                        </Card>
+                    </TabsContent>
+                </Tabs>
             </div>
-
-            {/* Tabs */}
-            <Tabs defaultValue="info" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="info">Información</TabsTrigger>
-                    <TabsTrigger value="documents">Documentos</TabsTrigger>
-                    <TabsTrigger value="students">Estudiantes</TabsTrigger>
-                </TabsList>
-
-                {/* Information Tab */}
-                <TabsContent value="info">
-                    <AssistantForm
-                        initialData={{
-                            id: assistant.id,
-                            name: assistant.name,
-                            description: assistant.description || '',
-                            systemPrompt: assistant.systemPrompt,
-                            temperature: assistant.temperature / 100,
-                            isPublic: assistant.isPublic === 1,
-                        }}
-                        onSubmit={handleUpdateAssistant}
-                        isEditing
-                    />
-                </TabsContent>
-
-                {/* Documents Tab */}
-                <TabsContent value="documents" className="space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Subir Documentos</CardTitle>
-                            <CardDescription>
-                                Los documentos se procesarán automáticamente para mejorar las
-                                respuestas del asistente mediante RAG
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <UploadZone assistantId={id} />
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Documentos Subidos</CardTitle>
-                            <CardDescription>
-                                Gestiona los documentos asociados a este asistente
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <DocumentList assistantId={id} />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                {/* Students Tab */}
-                <TabsContent value="students">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Asignar Estudiantes</CardTitle>
-                            <CardDescription>
-                                Controla qué estudiantes tienen acceso a este asistente
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <StudentAssignment assistantId={id} />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-            </Tabs>
-        </div>
+        </>
     );
 }

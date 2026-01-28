@@ -5,6 +5,8 @@ import { auth } from '@/auth';
 import { db } from '@/db';
 import { assistants } from '@/db/schema';
 import type { AssistantFormData } from '@/components/assistants/assistant-form';
+import { Navbar } from '@/components/ui/navbar';
+import { getTranslations } from 'next-intl/server';
 
 export default async function CreateAssistantPage() {
     const session = await auth();
@@ -12,6 +14,8 @@ export default async function CreateAssistantPage() {
     if (!session?.user || session.user.role !== 'TEACHER') {
         redirect('/login');
     }
+
+    const t = await getTranslations('createPage');
 
     async function handleCreateAssistant(data: AssistantFormData) {
         'use server';
@@ -38,15 +42,18 @@ export default async function CreateAssistantPage() {
     }
 
     return (
-        <div className="container max-w-4xl py-8">
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold">Crear Nuevo Asistente</h1>
-                <p className="text-muted-foreground mt-2">
-                    Personaliza un asistente de IA para tus estudiantes
-                </p>
-            </div>
+        <>
+            <Navbar user={session.user} />
+            <div className="container max-w-4xl py-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold">{t('title')}</h1>
+                    <p className="text-muted-foreground mt-2">
+                        {t('subtitle')}
+                    </p>
+                </div>
 
-            <AssistantForm onSubmit={handleCreateAssistant} />
-        </div>
+                <AssistantForm onSubmit={handleCreateAssistant} />
+            </div>
+        </>
     );
 }

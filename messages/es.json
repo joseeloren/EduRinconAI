@@ -84,7 +84,29 @@
         "cancel": "Cancelar",
         "saving": "Guardando...",
         "saveChanges": "Guardar Cambios",
-        "createAssistant": "Crear Asistente"
+        "createAssistant": "Crear Asistente",
+        "errorSaving": "Error al guardar el asistente"
+    },
+    "assistantManagement": {
+        "backToDashboard": "Volver al Dashboard",
+        "createdBy": "Creado por",
+        "tabInfo": "Información",
+        "tabDocuments": "Documentos",
+        "tabStudents": "Estudiantes",
+        "uploadDocuments": "Subir Documentos",
+        "uploadDescription": "Los documentos se procesarán automáticamente para mejorar las respuestas del asistente mediante RAG",
+        "uploadedDocuments": "Documentos Subidos",
+        "manageDocuments": "Gestiona los documentos asociados a este asistente",
+        "assignStudents": "Asignar Estudiantes",
+        "assignDescription": "Controla qué estudiantes tienen acceso a este asistente",
+        "deleteButton": "Eliminar Asistente",
+        "deleteTitle": "¿Estás seguro?",
+        "deleteDescription": "Esta acción no se puede deshacer. Esto eliminará permanentemente el asistente",
+        "deleteDescriptionExtra": "y todos sus datos asociados (documentos, asignaciones, chats).",
+        "cancel": "Cancelar",
+        "deleting": "Eliminando...",
+        "delete": "Eliminar",
+        "deleteError": "Error al eliminar el asistente"
     },
     "Login": {
         "title": "Bienvenido",
@@ -100,5 +122,9 @@
         "admin": "Admin",
         "teacher": "Profesor",
         "student": "Alumno"
+    },
+    "createPage": {
+        "title": "Crear Nuevo Asistente",
+        "subtitle": "Personaliza un asistente de IA para tus estudiantes"
     }
 }

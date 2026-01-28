@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
     AlertDialog,
@@ -15,6 +14,7 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Trash2 } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 
 interface DeleteAssistantButtonProps {
     assistantId: string;
@@ -27,6 +27,7 @@ export function DeleteAssistantButton({
     assistantName,
     onDelete,
 }: DeleteAssistantButtonProps) {
+    const t = useTranslations('assistantManagement');
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
 
@@ -45,7 +46,7 @@ export function DeleteAssistantButton({
             }
 
             console.error('Error deleting assistant:', error);
-            alert('Error al eliminar el asistente');
+            alert(t('deleteError'));
         } finally {
             setLoading(false);
             setOpen(false);
@@ -57,26 +58,24 @@ export function DeleteAssistantButton({
             <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm">
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Eliminar Asistente
+                    {t('deleteButton')}
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                    <AlertDialogTitle>{t('deleteTitle')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Esta acción no se puede deshacer. Esto eliminará permanentemente el
-                        asistente <strong>{assistantName}</strong> y todos sus datos asociados
-                        (documentos, asignaciones, chats).
+                        {t('deleteDescription')} <strong>{assistantName}</strong> {t('deleteDescriptionExtra')}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={loading}>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel disabled={loading}>{t('cancel')}</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleDelete}
                         disabled={loading}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                        {loading ? 'Eliminando...' : 'Eliminar'}
+                        {loading ? t('deleting') : t('delete')}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>

@@ -56,23 +56,22 @@ export default async function AssistantManagementPage({ params }: PageProps) {
     async function handleUpdateAssistant(data: AssistantFormData) {
         'use server';
 
-        const response = await fetch(
-            `${process.env.NEXTAUTH_URL}/api/assistants/${id}`,
-            {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    ...data,
-                    temperature: Math.round(data.temperature * 100),
-                }),
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error('Failed to update assistant');
+        const session = await auth();
+        if (!session?.user) {
+            throw new Error('Not authenticated');
         }
+
+        // Update assistant directly in database
+        await db
+            .update(assistants)
+            .set({
+                name: data.name,
+                description: data.description,
+                systemPrompt: data.systemPrompt,
+                isPublic: data.isPublic ? 1 : 0,
+                temperature: Math.round(data.temperature * 100),
+            })
+            .where(eq(assistants.id, id));
 
         redirect(`/teacher/assistants/${id}`);
     }

@@ -2,6 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AssistantForm } from '@/components/assistants/assistant-form';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
+import { db } from '@/db';
+import { assistants } from '@/db/schema';
 import type { AssistantFormData } from '@/components/assistants/assistant-form';
 
 export default async function CreateAssistantPage() {
@@ -19,22 +21,19 @@ export default async function CreateAssistantPage() {
             throw new Error('Not authenticated');
         }
 
-        const response = await fetch(`${process.env.NEXTAUTH_URL}/api/assistants`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ...data,
+        // Create assistant directly in database
+        const [assistant] = await db
+            .insert(assistants)
+            .values({
+                name: data.name,
+                description: data.description,
+                systemPrompt: data.systemPrompt,
+                createdById: session.user.id,
+                isPublic: data.isPublic ? 1 : 0,
                 temperature: Math.round(data.temperature * 100), // Convert to 0-100 scale
-            }),
-        });
+            })
+            .returning();
 
-        if (!response.ok) {
-            throw new Error('Failed to create assistant');
-        }
-
-        const assistant = await response.json();
         redirect(`/teacher/assistants/${assistant.id}`);
     }
 

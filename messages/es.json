@@ -1,0 +1,10 @@
+{
+    "Navbar": {
+        "login": "Iniciar Sesión",
+        "dashboard": "Panel: {role}"
+    },
+    "Login": {
+        "title": "Bienvenido",
+        "subtitle": "Inicia sesión en tu cuenta"
+    }
+}

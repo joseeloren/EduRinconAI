@@ -1,0 +1,10 @@
+{
+    "Navbar": {
+        "login": "Login",
+        "dashboard": "Dashboard: {role}"
+    },
+    "Login": {
+        "title": "Welcome",
+        "subtitle": "Sign in to your account"
+    }
+}

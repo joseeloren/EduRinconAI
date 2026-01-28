@@ -1,23 +1,40 @@
 import createMiddleware from 'next-intl/middleware';
+import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 
-// Create i18n middleware
 const intlMiddleware = createMiddleware({
-    // A list of all locales that are supported
     locales: ['en', 'es'],
-
-    // Used when no locale matches
     defaultLocale: 'es'
 });
 
-// Middleware function that combines auth and i18n
-export default auth((req) => {
-    // If the user is authenticated (or not), we still want to run i18n middleware
-    // except for API routes which are handled separately (and typically ignored by the matcher below)
-    return intlMiddleware(req);
+const publicRoutes = ['/', '/login', '/register', '/es/login', '/en/login', '/es', '/en'];
+
+export default auth(async (req) => {
+    const { nextUrl } = req;
+    const isPublicRoute = publicRoutes.some(route => nextUrl.pathname === route || nextUrl.pathname.startsWith('/es/login') || nextUrl.pathname.startsWith('/en/login'));
+    const isLoggedIn = !!req.auth;
+
+    // Execute internationalization middleware first
+    const response = intlMiddleware(req as unknown as NextRequest);
+
+    // If it's a public route, allow access
+    if (isPublicRoute || nextUrl.pathname === '/es' || nextUrl.pathname === '/en') {
+        return response;
+    }
+
+    // Protection for private routes
+    if (!isLoggedIn) {
+        const locale = nextUrl.pathname.split('/')[1] || 'es';
+        // If already on login page (regardless of locale), allow
+        if (nextUrl.pathname.includes('/login')) {
+            return response;
+        }
+        return NextResponse.redirect(new URL(`/${locale}/login`, nextUrl));
+    }
+
+    return response;
 });
 
 export const config = {
-    // Match only internationalized pathnames
-    matcher: ['/', '/(es|en)/:path*']
+    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)']
 };

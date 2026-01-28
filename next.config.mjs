@@ -1,13 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    // Turbopack configuration for Next.js 16+
+    turbopack: {},
     experimental: {
         serverActions: {
-            bodySizeLimit: '10mb',
+            bodySizeLimit: '20mb',
         },
-    },
-    webpack: (config) => {
-        config.externals = [...(config.externals || []), 'canvas', 'jsdom'];
-        return config;
     },
 };
 

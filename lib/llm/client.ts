@@ -1,8 +1,6 @@
 import OpenAI from 'openai';
 
-if (!process.env.LLM_API_BASE_URL) {
-    throw new Error('LLM_API_BASE_URL environment variable is not set');
-}
+
 
 // Helper to ensure baseURL ends with /v1 for OpenAI compatibility
 const getBaseURL = () => {
@@ -16,7 +14,7 @@ const getBaseURL = () => {
 // Create OpenAI client configured for Ollama/LocalAI
 export const llmClient = new OpenAI({
     baseURL: getBaseURL(),
-    apiKey: 'ollama', // Ollama doesn't require a real API key
+    apiKey: process.env.LLM_API_KEY || 'ollama', // Ollama doesn't require a real API key
 });
 
 export const LLM_MODEL = process.env.LLM_MODEL_NAME || 'llama3.2';

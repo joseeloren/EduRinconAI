@@ -19,7 +19,7 @@ const getBaseURL = () => {
 // Configure OpenAI provider for Ollama/LocalAI
 const ollama = createOpenAI({
     baseURL: getBaseURL(),
-    apiKey: 'ollama',
+    apiKey: process.env.LLM_API_KEY || 'ollama',
 });
 
 export async function POST(request: Request) {

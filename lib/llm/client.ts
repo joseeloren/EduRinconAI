@@ -4,9 +4,18 @@ if (!process.env.LLM_API_BASE_URL) {
     throw new Error('LLM_API_BASE_URL environment variable is not set');
 }
 
+// Helper to ensure baseURL ends with /v1 for OpenAI compatibility
+const getBaseURL = () => {
+    let url = process.env.LLM_API_BASE_URL || 'http://localhost:11434';
+    if (!url.endsWith('/v1')) {
+        url = `${url}/v1`;
+    }
+    return url;
+};
+
 // Create OpenAI client configured for Ollama/LocalAI
 export const llmClient = new OpenAI({
-    baseURL: process.env.LLM_API_BASE_URL,
+    baseURL: getBaseURL(),
     apiKey: 'ollama', // Ollama doesn't require a real API key
 });
 

@@ -7,9 +7,18 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { retrieveContext, formatContextForPrompt } from '@/lib/rag/retriever';
 import { canAccessAssistant } from '@/lib/auth/roles';
 
+// Helper to ensure baseURL ends with /v1
+const getBaseURL = () => {
+    let url = process.env.LLM_API_BASE_URL || 'http://localhost:11434';
+    if (!url.endsWith('/v1')) {
+        url = `${url}/v1`;
+    }
+    return url;
+};
+
 // Configure OpenAI provider for Ollama/LocalAI
 const ollama = createOpenAI({
-    baseURL: process.env.LLM_API_BASE_URL || 'http://localhost:11434/v1',
+    baseURL: getBaseURL(),
     apiKey: 'ollama',
 });
 

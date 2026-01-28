@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import {
@@ -58,7 +59,13 @@ export function Navbar({ user }: NavbarProps) {
             <div className="container flex h-14 items-center">
                 {/* Logo */}
                 <div className="mr-8 flex items-center space-x-2">
-                    <GraduationCap className="h-6 w-6 text-primary" />
+                    <Image
+                        src="/logo-ies-rincon.png"
+                        alt="IES El Rincón"
+                        width={32}
+                        height={32}
+                        className="rounded"
+                    />
                     <span className="hidden font-bold sm:inline-block">
                         EduRincón AI
                     </span>

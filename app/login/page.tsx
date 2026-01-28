@@ -48,6 +48,7 @@ export default function LoginPage() {
                             width={80}
                             height={80}
                             className="rounded-lg"
+                            unoptimized
                         />
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900">EduRinconAI</h1>

@@ -65,6 +65,7 @@ export function Navbar({ user }: NavbarProps) {
                         width={32}
                         height={32}
                         className="rounded"
+                        unoptimized
                     />
                     <span className="hidden font-bold sm:inline-block">
                         EduRincón AI

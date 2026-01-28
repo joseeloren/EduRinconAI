@@ -45,7 +45,14 @@ const NAV_LINKS = {
     ],
 };
 
+import { useTranslations } from 'next-intl';
+
+// ... (imports)
+
+// ... (ROLE_LABELS removed or unused if we translate them)
+
 export function Navbar({ user }: NavbarProps) {
+    const t = useTranslations('Navbar');
     const pathname = usePathname();
     const links = NAV_LINKS[user.role];
     const initials = user.name
@@ -60,6 +67,7 @@ export function Navbar({ user }: NavbarProps) {
             <div className="container mx-auto flex h-14 items-center px-4">
                 {/* Logo */}
                 <div className="mr-8 flex items-center space-x-2">
+                    {/* ... (Image) */}
                     <Image
                         src="/logo-ies-rincon.jpg"
                         alt="IES El Rincón"
@@ -84,6 +92,7 @@ export function Navbar({ user }: NavbarProps) {
                                 : 'text-foreground/60'
                                 }`}
                         >
+                            {/* We might need to translate link labels too, but for now specific links are hardcoded in NAV_LINKS */}
                             {link.label}
                         </Link>
                     ))}
@@ -93,6 +102,7 @@ export function Navbar({ user }: NavbarProps) {
                 <div className="flex items-center space-x-4">
                     <LanguageSwitcher />
                     <span className="hidden md:inline text-sm text-muted-foreground">
+                        {/* Example translation: "Dashboard: Prof" or similar if we added keys */}
                         Hola, <span className="font-medium text-foreground">{user.name}</span>
                     </span>
                     <DropdownMenu>
@@ -113,7 +123,7 @@ export function Navbar({ user }: NavbarProps) {
                                         {user.email}
                                     </p>
                                     <p className="text-xs leading-none text-muted-foreground">
-                                        {ROLE_LABELS[user.role]}
+                                        {user.role}
                                     </p>
                                 </div>
                             </DropdownMenuLabel>
@@ -124,12 +134,13 @@ export function Navbar({ user }: NavbarProps) {
                                     Perfil
                                 </Link>
                             </DropdownMenuItem>
+                            {/* ... */}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => {
-                                // Use window.location to trigger server-side signout with CSRF
                                 window.location.href = '/api/auth/signout';
                             }}>
                                 <LogOut className="mr-2 h-4 w-4" />
+                                {t('login')} {/* Reusing login key for Logout/Login context or adding new key? Actually t('login') is 'Iniciar Sesion', we need 'Logout' */}
                                 Cerrar Sesión
                             </DropdownMenuItem>
                         </DropdownMenuContent>

@@ -11,6 +11,7 @@ import { DocumentList } from '@/components/documents/document-list';
 import { UploadZone } from '@/components/documents/upload-zone';
 import type { AssistantFormData } from '@/components/assistants/assistant-form';
 import { Button } from '@/components/ui/button';
+import { DeleteAssistantButton } from '@/components/assistants/delete-assistant-button';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 
@@ -76,6 +77,20 @@ export default async function AssistantManagementPage({ params }: PageProps) {
         redirect(`/teacher/assistants/${id}`);
     }
 
+    async function handleDeleteAssistant() {
+        'use server';
+
+        const session = await auth();
+        if (!session?.user) {
+            throw new Error('Not authenticated');
+        }
+
+        // Delete assistant
+        await db.delete(assistants).where(eq(assistants.id, id));
+
+        redirect('/teacher');
+    }
+
     return (
         <div className="container max-w-6xl py-8">
             {/* Header */}
@@ -86,12 +101,21 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                         Volver al Dashboard
                     </Button>
                 </Link>
-                <h1 className="text-3xl font-bold">{assistant.name}</h1>
-                {assistant.description && (
-                    <p className="text-muted-foreground mt-2">{assistant.description}</p>
-                )}
-                <div className="mt-4 text-sm text-muted-foreground">
-                    Creado por {assistant.creator.name}
+                <div className="flex items-start justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold">{assistant.name}</h1>
+                        {assistant.description && (
+                            <p className="text-muted-foreground mt-2">{assistant.description}</p>
+                        )}
+                        <div className="mt-4 text-sm text-muted-foreground">
+                            Creado por {assistant.creator.name}
+                        </div>
+                    </div>
+                    <DeleteAssistantButton
+                        assistantId={assistant.id}
+                        assistantName={assistant.name}
+                        onDelete={handleDeleteAssistant}
+                    />
                 </div>
             </div>
 

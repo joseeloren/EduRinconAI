@@ -82,6 +82,9 @@ export function Navbar({ user }: NavbarProps) {
 
                 {/* User Menu */}
                 <div className="flex items-center space-x-4">
+                    <span className="hidden md:inline text-sm text-muted-foreground">
+                        Hola, <span className="font-medium text-foreground">{user.name}</span>
+                    </span>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="relative h-8 w-8 rounded-full">

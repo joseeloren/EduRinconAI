@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 export default function LoginPage() {
+    const t = useTranslations('Login');
     const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -14,6 +16,7 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
+        // ... (existing logic)
         e.preventDefault();
         setError('');
         setLoading(true);
@@ -26,7 +29,7 @@ export default function LoginPage() {
             });
 
             if (result?.error) {
-                setError('Credenciales inválidas');
+                setError('Credenciales inválidas'); // TODO: Translate error messages
             } else {
                 router.push('/');
                 router.refresh();
@@ -57,6 +60,8 @@ export default function LoginPage() {
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900">EduRinconAI</h1>
                     <p className="text-gray-600 mt-2">IES El Rincón</p>
+                    <h2 className="text-xl font-semibold text-gray-800 mt-4">{t('title')}</h2>
+                    <p className="text-sm text-gray-500">{t('subtitle')}</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">

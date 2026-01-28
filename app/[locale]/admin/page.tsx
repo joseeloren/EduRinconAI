@@ -5,7 +5,7 @@ import { users, assistants, documents } from '@/db/schema';
 import { eq, count } from 'drizzle-orm';
 import { Users, Bot, FileText, GraduationCap } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
 export default async function AdminDashboard() {
     const session = await auth();
@@ -40,7 +40,7 @@ export default async function AdminDashboard() {
         },
     });
 
-    const t = useTranslations();
+    const t = await getTranslations();
 
     return (
         <>

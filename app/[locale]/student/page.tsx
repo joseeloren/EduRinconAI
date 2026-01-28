@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 import { AssistantCard } from '@/components/assistants/assistant-card';
 import { Bot } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
 export default async function StudentDashboard() {
     const session = await auth();
@@ -36,7 +36,7 @@ export default async function StudentDashboard() {
     const uniquePublic = publicAssistants.filter((a) => !assignedIds.has(a.id));
     const allAssistants = [...assignedAssistants, ...uniquePublic];
 
-    const t = useTranslations();
+    const t = await getTranslations();
 
     return (
         <>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Plus, BookOpen, Users, Bot } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 
 export default async function TeacherDashboard() {
     const session = await auth();
@@ -38,7 +38,7 @@ export default async function TeacherDashboard() {
         })
     );
 
-    const t = useTranslations();
+    const t = await getTranslations();
 
     return (
         <>

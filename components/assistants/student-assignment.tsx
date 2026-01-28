@@ -170,7 +170,7 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
                 <CardHeader>
                     <CardTitle>Estudiantes Asignados</CardTitle>
                     <CardDescription>
-                        <Badge variant="secondary">{assignments.length}</Badge> estudiante
+                        {assignments.length} estudiante
                         {assignments.length !== 1 ? 's' : ''} con acceso
                     </CardDescription>
                 </CardHeader>

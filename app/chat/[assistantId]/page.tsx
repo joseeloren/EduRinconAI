@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { ChatInterface } from '@/components/chat/chat-interface';
+import { Navbar } from '@/components/ui/navbar';
 import { db } from '@/db';
 import { assistants, documents } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -36,6 +37,7 @@ export default async function ChatPage({
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">
+            <Navbar user={session.user} />
             {/* Header */}
             <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 export default function LoginPage() {
     const router = useRouter();
@@ -38,7 +39,10 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 relative">
+            <div className="absolute top-4 right-4">
+                <LanguageSwitcher />
+            </div>
             <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-4">

@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { GraduationCap, LogOut, User } from 'lucide-react';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 interface NavbarProps {
     user: {
@@ -90,6 +91,7 @@ export function Navbar({ user }: NavbarProps) {
 
                 {/* User Menu */}
                 <div className="flex items-center space-x-4">
+                    <LanguageSwitcher />
                     <span className="hidden md:inline text-sm text-muted-foreground">
                         Hola, <span className="font-medium text-foreground">{user.name}</span>
                     </span>

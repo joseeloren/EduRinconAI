@@ -8,12 +8,14 @@ import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, FileText } from 'lucide-react';
 
-export default async function ChatPage({
-    params,
-}: {
+import { messages } from '@/db/schema';
+
+export default async function ChatPage(props: {
     params: Promise<{ assistantId: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-    const { assistantId } = await params;
+    const params = await props.params;
+    const { assistantId } = params;
     const session = await auth();
 
     if (!session?.user) {
@@ -34,6 +36,25 @@ export default async function ChatPage({
         .select()
         .from(documents)
         .where(eq(documents.assistantId, assistantId));
+
+    // Message history logic
+    let initialMessages: any[] = [];
+    const searchParams = await props.searchParams;
+    const chatId = searchParams?.chatId;
+
+    if (chatId) {
+        const chatMessages = await db.query.messages.findMany({
+            where: eq(messages.chatId, chatId as string),
+            orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+        });
+
+        initialMessages = chatMessages.map((msg) => ({
+            id: msg.id,
+            role: msg.role as 'user' | 'assistant',
+            content: msg.content,
+            sources: msg.sources,
+        }));
+    }
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">
@@ -65,7 +86,11 @@ export default async function ChatPage({
 
             {/* Chat Interface */}
             <div className="flex-1 overflow-hidden">
-                <ChatInterface assistantId={assistantId} />
+                <ChatInterface
+                    assistantId={assistantId}
+                    chatId={chatId as string}
+                    initialMessages={initialMessages}
+                />
             </div>
         </div>
     );

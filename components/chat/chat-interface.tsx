@@ -8,11 +8,17 @@ import { useEffect, useRef } from 'react';
 interface ChatInterfaceProps {
     assistantId: string;
     chatId?: string;
+    initialMessages?: Array<{
+        id: string;
+        role: 'user' | 'assistant' | 'system';
+        content: string;
+    }>;
 }
 
-export function ChatInterface({ assistantId, chatId }: ChatInterfaceProps) {
+export function ChatInterface({ assistantId, chatId, initialMessages = [] }: ChatInterfaceProps) {
     const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
         api: '/api/chat',
+        initialMessages,
         body: {
             assistantId,
             chatId,

@@ -9,48 +9,70 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
+import { Captcha } from '@/components/ui/captcha';
 import { useTranslations } from 'next-intl';
 
+export interface AssistantFormData {
+    id?: string;
+    name: string;
+    description?: string;
+    systemPrompt: string;
+    isPublic: boolean;
+    temperature: number;
+    captchaToken?: string | null;
+}
+
 interface AssistantFormProps {
-    initialData?: {
-        id?: string;
-        name: string;
-        description: string;
-        systemPrompt: string;
-        temperature: number;
-        isPublic: boolean;
-    };
+    initialData?: AssistantFormData;
     onSubmit: (data: AssistantFormData) => Promise<void>;
     isEditing?: boolean;
 }
 
-export interface AssistantFormData {
-    name: string;
-    description: string;
-    systemPrompt: string;
-    temperature: number;
-    isPublic: boolean;
-}
-
 export function AssistantForm({ initialData, onSubmit, isEditing = false }: AssistantFormProps) {
     const router = useRouter();
+    const t = useTranslations('assistantManagement');
+    const [name, setName] = useState(initialData?.name || '');
+    const [description, setDescription] = useState(initialData?.description || '');
+    const [systemPrompt, setSystemPrompt] = useState(initialData?.systemPrompt || '');
+    const [isPublic, setIsPublic] = useState(initialData?.isPublic || false);
+    const [temperature, setTemperature] = useState(initialData?.temperature || 0.7);
     const [loading, setLoading] = useState(false);
-    const [formData, setFormData] = useState<AssistantFormData>({
-        name: initialData?.name || '',
-        description: initialData?.description || '',
-        systemPrompt: initialData?.systemPrompt || '',
-        temperature: initialData?.temperature || 0.7,
-        isPublic: initialData?.isPublic || false,
-    });
-
-    const t = useTranslations('assistantForm');
+    const [error, setError] = useState('');
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setError('');
+
+        if (!name.trim()) {
+            setError(t('errorNameRequired') || 'Name is required');
+            setLoading(false);
+            return;
+        }
+
+        if (!systemPrompt.trim()) {
+            setError(t('errorSystemPromptRequired') || 'System prompt is required');
+            setLoading(false);
+            return;
+        }
+
+        if (!isEditing && !captchaToken) {
+            setError('Por favor, completa el captcha');
+            setLoading(false);
+            return;
+        }
 
         try {
-            await onSubmit(formData);
+            await onSubmit({
+                id: initialData?.id,
+                name,
+                description,
+                systemPrompt,
+                isPublic,
+                temperature,
+                captchaToken,
+            });
         } catch (error) {
             // Next.js redirect() throws a special error that should not be caught
             // Check if it's a Next.js redirect error (NEXT_REDIRECT)
@@ -62,7 +84,7 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
             }
 
             console.error('Error submitting form:', error);
-            alert(t('errorSaving') || 'Error al guardar el asistente');
+            setError(t('errorSaving') || 'Error al guardar el asistente');
         } finally {
             setLoading(false);
         }
@@ -80,13 +102,14 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
                     {/* Nombre */}
                     <div className="space-y-2">
                         <Label htmlFor="name">{t('nameLabel')}</Label>
                         <Input
                             id="name"
-                            value={formData.name}
-                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
                             placeholder={t('namePlaceholder')}
                             required
                         />
@@ -97,8 +120,8 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                         <Label htmlFor="description">{t('descriptionLabel')}</Label>
                         <Textarea
                             id="description"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
                             placeholder={t('descriptionPlaceholder')}
                             rows={3}
                         />
@@ -109,8 +132,8 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                         <Label htmlFor="systemPrompt">{t('systemPromptLabel')}</Label>
                         <Textarea
                             id="systemPrompt"
-                            value={formData.systemPrompt}
-                            onChange={(e) => setFormData({ ...formData, systemPrompt: e.target.value })}
+                            value={systemPrompt}
+                            onChange={(e) => setSystemPrompt(e.target.value)}
                             placeholder={t('systemPromptPlaceholder')}
                             rows={8}
                             required
@@ -124,15 +147,15 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
                             <Label htmlFor="temperature">{t('temperatureLabel')}</Label>
-                            <span className="text-sm font-medium">{formData.temperature.toFixed(1)}</span>
+                            <span className="text-sm font-medium">{temperature.toFixed(1)}</span>
                         </div>
                         <Slider
                             id="temperature"
                             min={0}
                             max={1}
                             step={0.1}
-                            value={[formData.temperature]}
-                            onValueChange={([value]) => setFormData({ ...formData, temperature: value })}
+                            value={[temperature]}
+                            onValueChange={([value]) => setTemperature(value)}
                         />
                         <p className="text-sm text-muted-foreground">
                             {t('temperatureHelp')}
@@ -143,9 +166,9 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                     <div className="flex items-center space-x-2">
                         <Checkbox
                             id="isPublic"
-                            checked={formData.isPublic}
+                            checked={isPublic}
                             onCheckedChange={(checked) =>
-                                setFormData({ ...formData, isPublic: checked as boolean })
+                                setIsPublic(checked as boolean)
                             }
                         />
                         <div className="space-y-1">
@@ -158,18 +181,22 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                         </div>
                     </div>
                 </CardContent>
-                <CardFooter className="flex justify-between">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => router.back()}
-                        disabled={loading}
-                    >
-                        {t('cancel')}
-                    </Button>
-                    <Button type="submit" disabled={loading}>
-                        {loading ? t('saving') : isEditing ? t('saveChanges') : t('createAssistant')}
-                    </Button>
+                <CardFooter className="flex flex-col gap-4">
+                    <div className="flex justify-between w-full">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => router.back()}
+                            disabled={loading}
+                        >
+                            {t('cancel')}
+                        </Button>
+                        <Button type="submit" disabled={loading}>
+                            {loading ? t('saving') : isEditing ? t('saveChanges') : t('createAssistant')}
+                        </Button>
+                    </div>
+
+                    {!isEditing && <Captcha onChange={setCaptchaToken} />}
                 </CardFooter>
             </Card>
         </form>

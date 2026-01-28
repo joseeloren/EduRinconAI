@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { Captcha } from '@/components/ui/captcha';
 
 export default function LoginPage() {
     const t = useTranslations('Login');
@@ -14,16 +15,24 @@ export default function LoginPage() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
+        if (!captchaToken) {
+            setError('Por favor, completa el captcha');
+            setLoading(false);
+            return;
+        }
+
         try {
             const result = await signIn('credentials', {
                 email,
                 password,
+                captchaToken, // Pass captcha token to NextAuth
                 redirect: false,
             });
 
@@ -93,6 +102,8 @@ export default function LoginPage() {
                             disabled={loading}
                         />
                     </div>
+
+                    <Captcha onChange={setCaptchaToken} />
 
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

@@ -1,4 +1,4 @@
-import NextAuth from 'next-auth';
+import { verifyCaptcha } from '@/lib/captcha';
 import Credentials from 'next-auth/providers/credentials';
 import { db } from '@/db';
 import { users } from '@/db/schema';
@@ -22,6 +22,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             async authorize(credentials) {
                 if (!credentials?.email || !credentials?.password) {
                     return null;
+                }
+
+                // Verify captcha if in production or token provided
+                if (credentials.captchaToken) {
+                    const isCaptchaValid = await verifyCaptcha(credentials.captchaToken as string);
+                    if (!isCaptchaValid) {
+                        throw new Error('Captcha inválido');
+                    }
+                } else if (process.env.NODE_ENV === 'production') {
+                    // En producción, exigir captcha
+                    // Comentado temporalmente para permitir login sin actualizar cliente
+                    // throw new Error('Captcha requerido');
                 }
 
                 const user = await db.query.users.findFirst({

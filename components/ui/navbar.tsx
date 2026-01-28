@@ -115,13 +115,6 @@ export function Navbar({ user }: NavbarProps) {
                                 </div>
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <Link href="/profile" className="cursor-pointer">
-                                    <User className="mr-2 h-4 w-4" />
-                                    {t('navbar.profile')}
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => {
                                 window.location.href = '/api/auth/signout';
                             }}>

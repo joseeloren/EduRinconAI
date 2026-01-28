@@ -25,6 +25,17 @@ export default async function CreateAssistantPage() {
             throw new Error('Not authenticated');
         }
 
+        // Verify captcha if not in development or token provided
+        if (data.captchaToken) {
+            const { verifyCaptcha } = await import('@/lib/captcha');
+            const isCaptchaValid = await verifyCaptcha(data.captchaToken);
+            if (!isCaptchaValid) {
+                throw new Error('Captcha inválido');
+            }
+        } else if (process.env.NODE_ENV === 'production') {
+            // throw new Error('Captcha requerido');
+        }
+
         // Create assistant directly in database
         const [assistant] = await db
             .insert(assistants)

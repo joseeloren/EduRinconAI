@@ -8,7 +8,7 @@ import { join } from 'path';
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -16,8 +16,10 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
+
         const document = await db.query.documents.findFirst({
-            where: eq(documents.id, params.id),
+            where: eq(documents.id, id),
         });
 
         if (!document) {
@@ -36,7 +38,7 @@ export async function GET(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -44,8 +46,10 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
+
         const document = await db.query.documents.findFirst({
-            where: eq(documents.id, params.id),
+            where: eq(documents.id, id),
         });
 
         if (!document) {
@@ -53,10 +57,10 @@ export async function DELETE(
         }
 
         // Delete embeddings first (due to foreign key)
-        await db.delete(embeddings).where(eq(embeddings.documentId, params.id));
+        await db.delete(embeddings).where(eq(embeddings.documentId, id));
 
         // Delete document record
-        await db.delete(documents).where(eq(documents.id, params.id));
+        await db.delete(documents).where(eq(documents.id, id));
 
         // Delete physical file
         try {

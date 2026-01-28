@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -14,8 +14,10 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
+
         const assistant = await db.query.assistants.findFirst({
-            where: eq(assistants.id, params.id),
+            where: eq(assistants.id, id),
             with: {
                 creator: {
                     columns: {
@@ -51,7 +53,7 @@ export async function GET(
 
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -59,12 +61,13 @@ export async function PUT(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
         const { name, description, systemPrompt, temperature, isPublic } = body;
 
         // Verify ownership
         const existing = await db.query.assistants.findFirst({
-            where: eq(assistants.id, params.id),
+            where: eq(assistants.id, id),
         });
 
         if (!existing) {
@@ -89,7 +92,7 @@ export async function PUT(
                 isPublic: isPublic ? 1 : 0,
                 updatedAt: new Date(),
             })
-            .where(eq(assistants.id, params.id))
+            .where(eq(assistants.id, id))
             .returning();
 
         return NextResponse.json(updated);
@@ -104,7 +107,7 @@ export async function PUT(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -112,9 +115,11 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
+
         // Verify ownership
         const existing = await db.query.assistants.findFirst({
-            where: eq(assistants.id, params.id),
+            where: eq(assistants.id, id),
         });
 
         if (!existing) {
@@ -129,7 +134,7 @@ export async function DELETE(
         }
 
         // Delete assistant (cascade will handle related records)
-        await db.delete(assistants).where(eq(assistants.id, params.id));
+        await db.delete(assistants).where(eq(assistants.id, id));
 
         return NextResponse.json({ success: true });
     } catch (error) {

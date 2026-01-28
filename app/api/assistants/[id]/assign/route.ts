@@ -6,7 +6,7 @@ import { eq, and } from 'drizzle-orm';
 
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -14,6 +14,7 @@ export async function POST(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
         const body = await request.json();
         const { studentId } = body;
 
@@ -39,7 +40,7 @@ export async function POST(
         // Check if already assigned
         const existing = await db.query.assistantAccess.findFirst({
             where: and(
-                eq(assistantAccess.assistantId, params.id),
+                eq(assistantAccess.assistantId, id),
                 eq(assistantAccess.userId, studentId)
             ),
         });
@@ -55,7 +56,7 @@ export async function POST(
         const [assignment] = await db
             .insert(assistantAccess)
             .values({
-                assistantId: params.id,
+                assistantId: id,
                 userId: studentId,
                 grantedById: session.user.id,
             })
@@ -73,7 +74,7 @@ export async function POST(
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -81,6 +82,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
         const { searchParams } = new URL(request.url);
         const studentId = searchParams.get('studentId');
 
@@ -96,7 +98,7 @@ export async function DELETE(
             .delete(assistantAccess)
             .where(
                 and(
-                    eq(assistantAccess.assistantId, params.id),
+                    eq(assistantAccess.assistantId, id),
                     eq(assistantAccess.userId, studentId)
                 )
             );
@@ -114,7 +116,7 @@ export async function DELETE(
 // Get all students assigned to this assistant
 export async function GET(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -122,8 +124,10 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        const { id } = await params;
+
         const assignments = await db.query.assistantAccess.findMany({
-            where: eq(assistantAccess.assistantId, params.id),
+            where: eq(assistantAccess.assistantId, id),
             with: {
                 user: {
                     columns: {

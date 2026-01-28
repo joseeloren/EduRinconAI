@@ -45,8 +45,8 @@ export default function LoginPage() {
                         <Image
                             src="/logo-ies-rincon.jpg"
                             alt="IES El Rincón"
-                            width={80}
-                            height={80}
+                            width={120}
+                            height={120}
                             className="rounded-lg"
                             unoptimized
                         />

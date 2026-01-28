@@ -1,7 +1,90 @@
 {
-    "Navbar": {
+    "common": {
+        "greeting": "Hello",
+        "cancel": "Cancel",
+        "save": "Save",
+        "create": "Create",
+        "edit": "Edit",
+        "delete": "Delete",
+        "loading": "Loading...",
+        "saving": "Saving..."
+    },
+    "roles": {
+        "admin": "Administrator",
+        "teacher": "Teacher",
+        "student": "Student"
+    },
+    "navbar": {
         "login": "Login",
-        "dashboard": "Dashboard: {role}"
+        "logout": "Logout",
+        "profile": "Profile",
+        "greeting": "Hello",
+        "dashboard": "Dashboard",
+        "users": "Users",
+        "createAssistant": "Create Assistant",
+        "myAssistants": "My Assistants",
+        "history": "History"
+    },
+    "chat": {
+        "welcome": "👋 Hello! How can I help you today?",
+        "instructions": "Type your question and press Enter",
+        "placeholder": "Type your question...",
+        "sources": "Sources:"
+    },
+    "admin": {
+        "title": "Administration Panel",
+        "subtitle": "Manage users and system resources",
+        "stats": {
+            "users": "Users",
+            "assistants": "Assistants",
+            "documents": "Documents",
+            "system": "System",
+            "active": "Active"
+        },
+        "recentUsers": "Recent Users"
+    },
+    "teacher": {
+        "title": "Teacher Dashboard",
+        "subtitle": "Manage your assistants and resources",
+        "createNewAssistant": "Create New Assistant",
+        "stats": {
+            "assistants": "Assistants",
+            "documents": "Documents",
+            "students": "Students"
+        },
+        "myAssistants": "My Assistants",
+        "noAssistants": "You don't have any assistants yet",
+        "createFirstAssistant": "Create your first assistant to get started",
+        "createAssistant": "Create Assistant"
+    },
+    "student": {
+        "title": "My Assistants",
+        "subtitle": "Interact with your personalized AI assistants",
+        "noAssistants": "You don't have any assigned assistants",
+        "contactTeacher": "Contact your teacher to get assistants assigned",
+        "assigned": "Assigned",
+        "public": "Public Assistants"
+    },
+    "assistantForm": {
+        "createTitle": "Create New Assistant",
+        "editTitle": "Edit Assistant",
+        "createDescription": "Define a new personalized assistant for your students",
+        "editDescription": "Modify your assistant's details",
+        "nameLabel": "Assistant Name *",
+        "namePlaceholder": "E.g: Math Tutor",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Brief description of what this assistant does...",
+        "systemPromptLabel": "System Instructions (System Prompt) *",
+        "systemPromptPlaceholder": "You are an expert math tutor who helps high school students...",
+        "systemPromptHelp": "Define how the assistant should behave and what tone to use.",
+        "temperatureLabel": "Creativity (Temperature)",
+        "temperatureHelp": "0 = More precise and consistent responses | 1 = More creative and varied responses",
+        "isPublicLabel": "Public Assistant",
+        "isPublicHelp": "If checked, all students can access this assistant",
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "saveChanges": "Save Changes",
+        "createAssistant": "Create Assistant"
     },
     "Login": {
         "title": "Welcome",

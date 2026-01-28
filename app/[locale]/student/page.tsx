@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { AssistantCard } from '@/components/assistants/assistant-card';
 import { Bot } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
+import { useTranslations } from 'next-intl';
 
 export default async function StudentDashboard() {
     const session = await auth();
@@ -35,6 +36,8 @@ export default async function StudentDashboard() {
     const uniquePublic = publicAssistants.filter((a) => !assignedIds.has(a.id));
     const allAssistants = [...assignedAssistants, ...uniquePublic];
 
+    const t = useTranslations();
+
     return (
         <>
             <Navbar user={session.user} />
@@ -43,10 +46,10 @@ export default async function StudentDashboard() {
                     {/* Header */}
                     <div className="mb-8">
                         <h1 className="text-4xl font-bold text-gray-900">
-                            Mis Asistentes
+                            {t('student.title')}
                         </h1>
                         <p className="text-gray-600">
-                            Interactúa con tus asistentes de IA personalizados
+                            {t('student.subtitle')}
                         </p>
                     </div>
 
@@ -55,10 +58,10 @@ export default async function StudentDashboard() {
                         <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-200">
                             <Bot className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                             <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                No tienes asistentes asignados
+                                {t('student.noAssistants')}
                             </h3>
                             <p className="text-gray-600">
-                                Contacta a tu profesor para que te asigne asistentes
+                                {t('student.contactTeacher')}
                             </p>
                         </div>
                     ) : (
@@ -66,7 +69,7 @@ export default async function StudentDashboard() {
                             {assignedAssistants.length > 0 && (
                                 <div className="mb-8">
                                     <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                                        Asignados
+                                        {t('student.assigned')}
                                     </h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {assignedAssistants.map((assistant) => (
@@ -83,7 +86,7 @@ export default async function StudentDashboard() {
                             {uniquePublic.length > 0 && (
                                 <div>
                                     <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                                        Asistentes Públicos
+                                        {t('student.public')}
                                     </h2>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         {uniquePublic.map((assistant) => (

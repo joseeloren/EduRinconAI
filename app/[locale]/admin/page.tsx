@@ -5,6 +5,7 @@ import { users, assistants, documents } from '@/db/schema';
 import { eq, count } from 'drizzle-orm';
 import { Users, Bot, FileText, GraduationCap } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
+import { useTranslations } from 'next-intl';
 
 export default async function AdminDashboard() {
     const session = await auth();
@@ -39,6 +40,8 @@ export default async function AdminDashboard() {
         },
     });
 
+    const t = useTranslations();
+
     return (
         <>
             <Navbar user={session.user} />
@@ -47,9 +50,9 @@ export default async function AdminDashboard() {
                     {/* Header */}
                     <div className="mb-8">
                         <h1 className="text-4xl font-bold text-gray-900">
-                            Panel de Administración
+                            {t('admin.title')}
                         </h1>
-                        <p className="text-gray-600">Gestiona usuarios y recursos del sistema</p>
+                        <p className="text-gray-600">{t('admin.subtitle')}</p>
                     </div>
 
                     {/* Stats Grid */}
@@ -60,7 +63,7 @@ export default async function AdminDashboard() {
                                     <Users className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Usuarios</p>
+                                    <p className="text-sm text-gray-600">{t('admin.stats.users')}</p>
                                     <p className="text-2xl font-bold text-gray-900">{totalUsers}</p>
                                 </div>
                             </div>
@@ -72,7 +75,7 @@ export default async function AdminDashboard() {
                                     <Bot className="w-6 h-6 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Asistentes</p>
+                                    <p className="text-sm text-gray-600">{t('admin.stats.assistants')}</p>
                                     <p className="text-2xl font-bold text-gray-900">{totalAssistants}</p>
                                 </div>
                             </div>
@@ -84,7 +87,7 @@ export default async function AdminDashboard() {
                                     <FileText className="w-6 h-6 text-purple-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Documentos</p>
+                                    <p className="text-sm text-gray-600">{t('admin.stats.documents')}</p>
                                     <p className="text-2xl font-bold text-gray-900">{totalDocuments}</p>
                                 </div>
                             </div>
@@ -96,8 +99,8 @@ export default async function AdminDashboard() {
                                     <GraduationCap className="w-6 h-6 text-orange-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Sistema</p>
-                                    <p className="text-sm font-bold text-gray-900">Activo</p>
+                                    <p className="text-sm text-gray-600">{t('admin.stats.system')}</p>
+                                    <p className="text-sm font-bold text-gray-900">{t('admin.stats.active')}</p>
                                 </div>
                             </div>
                         </div>
@@ -107,7 +110,7 @@ export default async function AdminDashboard() {
                     <div className="bg-white rounded-xl shadow-md border border-gray-100">
                         <div className="p-6 border-b border-gray-100">
                             <h2 className="text-2xl font-bold text-gray-900">
-                                Usuarios Recientes
+                                {t('admin.recentUsers')}
                             </h2>
                         </div>
                         <div className="p-6">
@@ -131,15 +134,15 @@ export default async function AdminDashboard() {
                                         <div className="flex items-center gap-4">
                                             <span
                                                 className={`px-3 py-1 rounded-full text-xs font-medium ${user.role === 'ADMIN'
-                                                        ? 'bg-red-100 text-red-700'
-                                                        : user.role === 'TEACHER'
-                                                            ? 'bg-blue-100 text-blue-700'
-                                                            : 'bg-green-100 text-green-700'
+                                                    ? 'bg-red-100 text-red-700'
+                                                    : user.role === 'TEACHER'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-green-100 text-green-700'
                                                     }`}
                                             >
-                                                {user.role === 'ADMIN' && 'Administrador'}
-                                                {user.role === 'TEACHER' && 'Profesor'}
-                                                {user.role === 'STUDENT' && 'Estudiante'}
+                                                {user.role === 'ADMIN' && t('roles.admin')}
+                                                {user.role === 'TEACHER' && t('roles.teacher')}
+                                                {user.role === 'STUDENT' && t('roles.student')}
                                             </span>
                                             <span className="text-sm text-gray-500">
                                                 {new Date(user.createdAt).toLocaleDateString('es-ES')}

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Plus, BookOpen, Users, Bot } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
+import { useTranslations } from 'next-intl';
 
 export default async function TeacherDashboard() {
     const session = await auth();
@@ -37,6 +38,8 @@ export default async function TeacherDashboard() {
         })
     );
 
+    const t = useTranslations();
+
     return (
         <>
             <Navbar user={session.user} />
@@ -46,15 +49,15 @@ export default async function TeacherDashboard() {
                     <div className="mb-8 flex items-center justify-between">
                         <div>
                             <h1 className="text-4xl font-bold text-gray-900">
-                                Dashboard del Profesor
+                                {t('teacher.title')}
                             </h1>
-                            <p className="text-gray-600">Gestiona tus asistentes y recursos</p>
+                            <p className="text-gray-600">{t('teacher.subtitle')}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             <Link href="/teacher/assistants/create">
                                 <Button className="w-full">
                                     <Plus className="mr-2 h-4 w-4" />
-                                    Crear Nuevo Asistente
+                                    {t('teacher.createNewAssistant')}
                                 </Button>
                             </Link>
                         </div>
@@ -68,7 +71,7 @@ export default async function TeacherDashboard() {
                                     <Bot className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Asistentes</p>
+                                    <p className="text-sm text-gray-600">{t('teacher.stats.assistants')}</p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {teacherAssistants.length}
                                     </p>
@@ -82,7 +85,7 @@ export default async function TeacherDashboard() {
                                     <BookOpen className="w-6 h-6 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Documentos</p>
+                                    <p className="text-sm text-gray-600">{t('teacher.stats.documents')}</p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {assistantsWithCounts.reduce((sum, a) => sum + a.documentCount, 0)}
                                     </p>
@@ -96,7 +99,7 @@ export default async function TeacherDashboard() {
                                     <Users className="w-6 h-6 text-purple-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-600">Estudiantes</p>
+                                    <p className="text-sm text-gray-600">{t('teacher.stats.students')}</p>
                                     <p className="text-2xl font-bold text-gray-900">
                                         {/* TODO: Count unique students assigned */}
                                         -
@@ -109,22 +112,22 @@ export default async function TeacherDashboard() {
                     {/* Assistants Grid */}
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                            Mis Asistentes
+                            {t('teacher.myAssistants')}
                         </h2>
 
                         {assistantsWithCounts.length === 0 ? (
                             <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-200">
                                 <Bot className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                    No tienes asistentes aún
+                                    {t('teacher.noAssistants')}
                                 </h3>
                                 <p className="text-gray-600 mb-6">
-                                    Crea tu primer asistente para comenzar
+                                    {t('teacher.createFirstAssistant')}
                                 </p>
                                 <Link href="/teacher/assistants/create">
                                     <Button>
                                         <Plus className="mr-2 h-4 w-4" />
-                                        Crear Asistente
+                                        {t('teacher.createAssistant')}
                                     </Button>
                                 </Link>
                             </div>

@@ -1,7 +1,90 @@
 {
-    "Navbar": {
+    "common": {
+        "greeting": "Hola",
+        "cancel": "Cancelar",
+        "save": "Guardar",
+        "create": "Crear",
+        "edit": "Editar",
+        "delete": "Eliminar",
+        "loading": "Cargando...",
+        "saving": "Guardando..."
+    },
+    "roles": {
+        "admin": "Administrador",
+        "teacher": "Profesor",
+        "student": "Estudiante"
+    },
+    "navbar": {
         "login": "Iniciar Sesión",
-        "dashboard": "Panel: {role}"
+        "logout": "Cerrar Sesión",
+        "profile": "Perfil",
+        "greeting": "Hola",
+        "dashboard": "Dashboard",
+        "users": "Usuarios",
+        "createAssistant": "Crear Asistente",
+        "myAssistants": "Mis Asistentes",
+        "history": "Historial"
+    },
+    "chat": {
+        "welcome": "👋 ¡Hola! ¿En qué puedo ayudarte hoy?",
+        "instructions": "Escribe tu pregunta y presiona Enter",
+        "placeholder": "Escribe tu pregunta...",
+        "sources": "Fuentes:"
+    },
+    "admin": {
+        "title": "Panel de Administración",
+        "subtitle": "Gestiona usuarios y recursos del sistema",
+        "stats": {
+            "users": "Usuarios",
+            "assistants": "Asistentes",
+            "documents": "Documentos",
+            "system": "Sistema",
+            "active": "Activo"
+        },
+        "recentUsers": "Usuarios Recientes"
+    },
+    "teacher": {
+        "title": "Dashboard del Profesor",
+        "subtitle": "Gestiona tus asistentes y recursos",
+        "createNewAssistant": "Crear Nuevo Asistente",
+        "stats": {
+            "assistants": "Asistentes",
+            "documents": "Documentos",
+            "students": "Estudiantes"
+        },
+        "myAssistants": "Mis Asistentes",
+        "noAssistants": "No tienes asistentes aún",
+        "createFirstAssistant": "Crea tu primer asistente para comenzar",
+        "createAssistant": "Crear Asistente"
+    },
+    "student": {
+        "title": "Mis Asistentes",
+        "subtitle": "Interactúa con tus asistentes de IA personalizados",
+        "noAssistants": "No tienes asistentes asignados",
+        "contactTeacher": "Contacta a tu profesor para que te asigne asistentes",
+        "assigned": "Asignados",
+        "public": "Asistentes Públicos"
+    },
+    "assistantForm": {
+        "createTitle": "Crear Nuevo Asistente",
+        "editTitle": "Editar Asistente",
+        "createDescription": "Define un nuevo asistente personalizado para tus estudiantes",
+        "editDescription": "Modifica los detalles de tu asistente",
+        "nameLabel": "Nombre del Asistente *",
+        "namePlaceholder": "Ej: Tutor de Matemáticas",
+        "descriptionLabel": "Descripción",
+        "descriptionPlaceholder": "Breve descripción de lo que hace este asistente...",
+        "systemPromptLabel": "Instrucciones del Sistema (System Prompt) *",
+        "systemPromptPlaceholder": "Eres un tutor experto en matemáticas que ayuda a estudiantes de secundaria...",
+        "systemPromptHelp": "Define cómo debe comportarse el asistente y qué tono debe usar.",
+        "temperatureLabel": "Creatividad (Temperature)",
+        "temperatureHelp": "0 = Respuestas más precisas y consistentes | 1 = Respuestas más creativas y variadas",
+        "isPublicLabel": "Asistente Público",
+        "isPublicHelp": "Si está marcado, todos los estudiantes pueden acceder a este asistente",
+        "cancel": "Cancelar",
+        "saving": "Guardando...",
+        "saveChanges": "Guardar Cambios",
+        "createAssistant": "Crear Asistente"
     },
     "Login": {
         "title": "Bienvenido",

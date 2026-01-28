@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
+import { useTranslations } from 'next-intl';
 
 interface AssistantFormProps {
     initialData?: {
@@ -42,6 +43,8 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
         isPublic: initialData?.isPublic || false,
     });
 
+    const t = useTranslations('assistantForm');
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -59,7 +62,7 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
             }
 
             console.error('Error submitting form:', error);
-            alert('Error al guardar el asistente');
+            alert(t('errorSaving') || 'Error al guardar el asistente');
         } finally {
             setLoading(false);
         }
@@ -69,58 +72,58 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
         <form onSubmit={handleSubmit}>
             <Card>
                 <CardHeader>
-                    <CardTitle>{isEditing ? 'Editar Asistente' : 'Crear Nuevo Asistente'}</CardTitle>
+                    <CardTitle>{isEditing ? t('editTitle') : t('createTitle')}</CardTitle>
                     <CardDescription>
                         {isEditing
-                            ? 'Modifica los detalles de tu asistente'
-                            : 'Define un nuevo asistente personalizado para tus estudiantes'}
+                            ? t('editDescription')
+                            : t('createDescription')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     {/* Nombre */}
                     <div className="space-y-2">
-                        <Label htmlFor="name">Nombre del Asistente *</Label>
+                        <Label htmlFor="name">{t('nameLabel')}</Label>
                         <Input
                             id="name"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            placeholder="Ej: Tutor de Matemáticas"
+                            placeholder={t('namePlaceholder')}
                             required
                         />
                     </div>
 
                     {/* Descripción */}
                     <div className="space-y-2">
-                        <Label htmlFor="description">Descripción</Label>
+                        <Label htmlFor="description">{t('descriptionLabel')}</Label>
                         <Textarea
                             id="description"
                             value={formData.description}
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                            placeholder="Breve descripción de lo que hace este asistente..."
+                            placeholder={t('descriptionPlaceholder')}
                             rows={3}
                         />
                     </div>
 
                     {/* System Prompt */}
                     <div className="space-y-2">
-                        <Label htmlFor="systemPrompt">Instrucciones del Sistema (System Prompt) *</Label>
+                        <Label htmlFor="systemPrompt">{t('systemPromptLabel')}</Label>
                         <Textarea
                             id="systemPrompt"
                             value={formData.systemPrompt}
                             onChange={(e) => setFormData({ ...formData, systemPrompt: e.target.value })}
-                            placeholder="Eres un tutor experto en matemáticas que ayuda a estudiantes de secundaria..."
+                            placeholder={t('systemPromptPlaceholder')}
                             rows={8}
                             required
                         />
                         <p className="text-sm text-muted-foreground">
-                            Define cómo debe comportarse el asistente y qué tono debe usar.
+                            {t('systemPromptHelp')}
                         </p>
                     </div>
 
                     {/* Temperatura */}
                     <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                            <Label htmlFor="temperature">Creatividad (Temperature)</Label>
+                            <Label htmlFor="temperature">{t('temperatureLabel')}</Label>
                             <span className="text-sm font-medium">{formData.temperature.toFixed(1)}</span>
                         </div>
                         <Slider
@@ -132,7 +135,7 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                             onValueChange={([value]) => setFormData({ ...formData, temperature: value })}
                         />
                         <p className="text-sm text-muted-foreground">
-                            0 = Respuestas más precisas y consistentes | 1 = Respuestas más creativas y variadas
+                            {t('temperatureHelp')}
                         </p>
                     </div>
 
@@ -147,10 +150,10 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                         />
                         <div className="space-y-1">
                             <Label htmlFor="isPublic" className="cursor-pointer">
-                                Asistente Público
+                                {t('isPublicLabel')}
                             </Label>
                             <p className="text-sm text-muted-foreground">
-                                Si está marcado, todos los estudiantes pueden acceder a este asistente
+                                {t('isPublicHelp')}
                             </p>
                         </div>
                     </div>
@@ -162,10 +165,10 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                         onClick={() => router.back()}
                         disabled={loading}
                     >
-                        Cancelar
+                        {t('cancel')}
                     </Button>
                     <Button type="submit" disabled={loading}>
-                        {loading ? 'Guardando...' : isEditing ? 'Guardar Cambios' : 'Crear Asistente'}
+                        {loading ? t('saving') : isEditing ? t('saveChanges') : t('createAssistant')}
                     </Button>
                 </CardFooter>
             </Card>

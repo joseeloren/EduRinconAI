@@ -15,6 +15,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { GraduationCap, LogOut, User } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
+import { useTranslations } from 'next-intl';
 
 interface NavbarProps {
     user: {
@@ -24,36 +25,25 @@ interface NavbarProps {
     };
 }
 
-const ROLE_LABELS = {
-    ADMIN: 'Administrador',
-    TEACHER: 'Profesor',
-    STUDENT: 'Estudiante',
-};
-
-const NAV_LINKS = {
-    ADMIN: [
-        { href: '/admin', label: 'Dashboard' },
-        { href: '/admin/users', label: 'Usuarios' },
-    ],
-    TEACHER: [
-        { href: '/teacher', label: 'Dashboard' },
-        { href: '/teacher/assistants/create', label: 'Crear Asistente' },
-    ],
-    STUDENT: [
-        { href: '/student', label: 'Mis Asistentes' },
-        { href: '/student/chats', label: 'Historial' },
-    ],
-};
-
-import { useTranslations } from 'next-intl';
-
-// ... (imports)
-
-// ... (ROLE_LABELS removed or unused if we translate them)
-
 export function Navbar({ user }: NavbarProps) {
-    const t = useTranslations('Navbar');
+    const t = useTranslations();
     const pathname = usePathname();
+
+    const NAV_LINKS = {
+        ADMIN: [
+            { href: '/admin', label: t('navbar.dashboard') },
+            { href: '/admin/users', label: t('navbar.users') },
+        ],
+        TEACHER: [
+            { href: '/teacher', label: t('navbar.dashboard') },
+            { href: '/teacher/assistants/create', label: t('navbar.createAssistant') },
+        ],
+        STUDENT: [
+            { href: '/student', label: t('navbar.myAssistants') },
+            { href: '/student/chats', label: t('navbar.history') },
+        ],
+    };
+
     const links = NAV_LINKS[user.role];
     const initials = user.name
         .split(' ')
@@ -67,7 +57,6 @@ export function Navbar({ user }: NavbarProps) {
             <div className="container mx-auto flex h-14 items-center px-4">
                 {/* Logo */}
                 <div className="mr-8 flex items-center space-x-2">
-                    {/* ... (Image) */}
                     <Image
                         src="/logo-ies-rincon.jpg"
                         alt="IES El Rincón"
@@ -92,7 +81,6 @@ export function Navbar({ user }: NavbarProps) {
                                 : 'text-foreground/60'
                                 }`}
                         >
-                            {/* We might need to translate link labels too, but for now specific links are hardcoded in NAV_LINKS */}
                             {link.label}
                         </Link>
                     ))}
@@ -102,8 +90,7 @@ export function Navbar({ user }: NavbarProps) {
                 <div className="flex items-center space-x-4">
                     <LanguageSwitcher />
                     <span className="hidden md:inline text-sm text-muted-foreground">
-                        {/* Example translation: "Dashboard: Prof" or similar if we added keys */}
-                        Hola, <span className="font-medium text-foreground">{user.name}</span>
+                        {t('navbar.greeting')}, <span className="font-medium text-foreground">{user.name}</span>
                     </span>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -123,7 +110,7 @@ export function Navbar({ user }: NavbarProps) {
                                         {user.email}
                                     </p>
                                     <p className="text-xs leading-none text-muted-foreground">
-                                        {user.role}
+                                        {t(`roles.${user.role.toLowerCase()}`)}
                                     </p>
                                 </div>
                             </DropdownMenuLabel>
@@ -131,17 +118,15 @@ export function Navbar({ user }: NavbarProps) {
                             <DropdownMenuItem asChild>
                                 <Link href="/profile" className="cursor-pointer">
                                     <User className="mr-2 h-4 w-4" />
-                                    Perfil
+                                    {t('navbar.profile')}
                                 </Link>
                             </DropdownMenuItem>
-                            {/* ... */}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => {
                                 window.location.href = '/api/auth/signout';
                             }}>
                                 <LogOut className="mr-2 h-4 w-4" />
-                                {t('login')} {/* Reusing login key for Logout/Login context or adding new key? Actually t('login') is 'Iniciar Sesion', we need 'Logout' */}
-                                Cerrar Sesión
+                                {t('navbar.logout')}
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

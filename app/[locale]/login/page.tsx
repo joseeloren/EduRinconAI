@@ -50,16 +50,16 @@ export default function LoginPage() {
                 <div className="text-center mb-8">
                     <div className="flex justify-center mb-4">
                         <Image
-                            src="/logo-ies-rincon.jpg"
-                            alt="IES El Rincón"
+                            src="/logo-mentorai.png"
+                            alt="MentorAI"
                             width={120}
                             height={120}
                             className="rounded-lg"
                             unoptimized
                         />
                     </div>
-                    <h1 className="text-3xl font-bold text-gray-900">EduRinconAI</h1>
-                    <p className="text-gray-600 mt-2">IES El Rincón</p>
+                    <h1 className="text-3xl font-bold text-gray-900">MentorAI</h1>
+                    <p className="text-gray-600 mt-2">Tu asistente educativo inteligente</p>
                     <h2 className="text-xl font-semibold text-gray-800 mt-4">{t('title')}</h2>
                     <p className="text-sm text-gray-500">{t('subtitle')}</p>
                 </div>

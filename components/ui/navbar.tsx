@@ -58,15 +58,15 @@ export function Navbar({ user }: NavbarProps) {
                 {/* Logo */}
                 <div className="mr-8 flex items-center space-x-2">
                     <Image
-                        src="/logo-ies-rincon.jpg"
-                        alt="IES El Rincón"
+                        src="/logo-mentorai.png"
+                        alt="MentorAI"
                         width={32}
                         height={32}
                         className="rounded"
                         unoptimized
                     />
                     <span className="hidden font-bold sm:inline-block">
-                        EduRincón AI
+                        MentorAI
                     </span>
                 </div>
 

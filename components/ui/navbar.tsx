@@ -71,8 +71,8 @@ export function Navbar({ user }: NavbarProps) {
                             key={link.href}
                             href={link.href}
                             className={`transition-colors hover:text-foreground/80 ${pathname === link.href
-                                    ? 'text-foreground'
-                                    : 'text-foreground/60'
+                                ? 'text-foreground'
+                                : 'text-foreground/60'
                                 }`}
                         >
                             {link.label}
@@ -112,13 +112,12 @@ export function Navbar({ user }: NavbarProps) {
                                 </Link>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem asChild>
-                                <form action="/api/auth/signout" method="POST" className="w-full">
-                                    <button type="submit" className="flex w-full items-center cursor-pointer">
-                                        <LogOut className="mr-2 h-4 w-4" />
-                                        Cerrar Sesión
-                                    </button>
-                                </form>
+                            <DropdownMenuItem onClick={() => {
+                                // Use window.location to trigger server-side signout with CSRF
+                                window.location.href = '/api/auth/signout';
+                            }}>
+                                <LogOut className="mr-2 h-4 w-4" />
+                                Cerrar Sesión
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

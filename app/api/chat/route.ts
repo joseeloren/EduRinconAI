@@ -10,6 +10,11 @@ import { canAccessAssistant } from '@/lib/auth/roles';
 // Helper to ensure baseURL ends with /v1
 const getBaseURL = () => {
     let url = process.env.LLM_API_BASE_URL || 'http://localhost:11434';
+    // Remove trailing slash if present to avoid double slashes
+    if (url.endsWith('/')) {
+        url = url.slice(0, -1);
+    }
+    // Append /v1 if not present
     if (!url.endsWith('/v1')) {
         url = `${url}/v1`;
     }

@@ -5,7 +5,6 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     turbopack: {},
-    output: 'standalone',
     experimental: {
         serverActions: {
             bodySizeLimit: '20mb',

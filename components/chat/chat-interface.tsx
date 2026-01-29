@@ -3,7 +3,7 @@
 import { useChat } from 'ai/react';
 import { Send, FileText } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { TalkingAvatar } from './talking-avatar';
 
@@ -28,18 +28,50 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
         },
     });
 
+    // TTS State
     const [isSpeaking, setIsSpeaking] = useState(false);
+    const synthRef = useRef<SpeechSynthesis | null>(null);
 
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-
+    // Initialize SpeechSynthesis
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            synthRef.current = window.speechSynthesis;
+        }
+        return () => {
+            if (synthRef.current) {
+                synthRef.current.cancel();
+            }
+        };
+    }, []);
 
     // Get the last assistant message content for TTS
     const lastAssistantMessage = messages
         .filter(m => m.role === 'assistant')
         .pop()?.content || '';
+
+    // Handle TTS when new message arrives
+    useEffect(() => {
+        if (!lastAssistantMessage || !synthRef.current) return;
+
+        // Stop previous
+        synthRef.current.cancel();
+
+        // Speak
+        const cleanText = lastAssistantMessage.replace(/[*#_`]/g, '');
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'es-ES'; // Default, could be improved
+
+        const voices = synthRef.current.getVoices();
+        const preferredVoice = voices.find(v => v.lang.includes('es') && v.name.includes('Google')) ||
+            voices.find(v => v.lang.includes('es'));
+        if (preferredVoice) utterance.voice = preferredVoice;
+
+        utterance.onstart = () => setIsSpeaking(true);
+        utterance.onend = () => setIsSpeaking(false);
+        utterance.onerror = () => setIsSpeaking(false);
+
+        synthRef.current.speak(utterance);
+    }, [lastAssistantMessage]);
 
     // ... useEffect for scrolling
 

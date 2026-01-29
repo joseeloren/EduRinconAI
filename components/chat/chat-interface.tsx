@@ -3,9 +3,9 @@
 import { useChat } from 'ai/react';
 import { Send, FileText } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { TalkingAvatar } from './talking-avatar';
+import { Avatar3DWrapper } from './avatar-3d';
 
 interface ChatInterfaceProps {
     assistantId: string;

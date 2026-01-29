@@ -1,4 +1,5 @@
 import { verifyCaptcha } from '@/lib/captcha';
+import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import { db } from '@/db';
 import { users } from '@/db/schema';
@@ -25,8 +26,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 }
 
                 // Verify captcha if in production or token provided
-                if (credentials.captchaToken) {
-                    const isCaptchaValid = await verifyCaptcha(credentials.captchaToken as string);
+                // Verify captcha if in production or token provided
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const creds = credentials as any;
+                if (creds.captchaToken) {
+                    const isCaptchaValid = await verifyCaptcha(creds.captchaToken as string);
                     if (!isCaptchaValid) {
                         throw new Error('Captcha inválido');
                     }

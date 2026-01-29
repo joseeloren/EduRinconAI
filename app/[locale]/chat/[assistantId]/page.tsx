@@ -32,10 +32,7 @@ export default async function ChatPage(props: {
         notFound();
     }
 
-    const assistantDocuments = await db
-        .select()
-        .from(documents)
-        .where(eq(documents.assistantId, assistantId));
+
 
     // Message history logic
     let initialMessages: any[] = [];
@@ -52,7 +49,7 @@ export default async function ChatPage(props: {
             id: msg.id,
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
-            sources: msg.sources,
+            createdAt: msg.createdAt,
         }));
     }
 
@@ -75,11 +72,6 @@ export default async function ChatPage(props: {
                                 <p className="text-sm text-gray-600">{assistant.description}</p>
                             )}
                         </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                        <FileText className="w-4 h-4" />
-                        <span>{assistantDocuments.length} documentos</span>
                     </div>
                 </div>
             </header>

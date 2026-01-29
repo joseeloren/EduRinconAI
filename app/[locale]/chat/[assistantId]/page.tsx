@@ -2,7 +2,7 @@ import { auth } from '@/auth';
 import { ChatInterface } from '@/components/chat/chat-interface';
 import { Navbar } from '@/components/ui/navbar';
 import { db } from '@/db';
-import { assistants, documents } from '@/db/schema';
+import { assistants } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';

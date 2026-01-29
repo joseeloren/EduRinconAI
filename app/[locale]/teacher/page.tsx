@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { assistants, documents } from '@/db/schema';
+import { assistants } from '@/db/schema';
 import { eq, and, count } from 'drizzle-orm';
 import { AssistantCard } from '@/components/assistants/assistant-card';
 import { Button } from '@/components/ui/button';

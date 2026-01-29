@@ -69,6 +69,16 @@ export const assistantAccess = pgTable('assistant_access', {
     grantedById: uuid('granted_by_id').notNull().references(() => users.id),
 });
 
+// Chats Table
+export const chats = pgTable('chats', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    assistantId: uuid('assistant_id').notNull().references(() => assistants.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 255 }).default('New Chat').notNull(),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Messages Table
 export const messages = pgTable('messages', {
     id: uuid('id').defaultRandom().primaryKey(),

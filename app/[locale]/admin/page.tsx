@@ -1,7 +1,7 @@
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { db } from '@/db';
-import { users, assistants, documents } from '@/db/schema';
+import { users, assistants } from '@/db/schema';
 import { eq, count } from 'drizzle-orm';
 import { Users, Bot, FileText, GraduationCap } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
@@ -22,10 +22,6 @@ export default async function AdminDashboard() {
     const [
         { count: totalAssistants }
     ] = await db.select({ count: count() }).from(assistants);
-
-    const [
-        { count: totalDocuments }
-    ] = await db.select({ count: count() }).from(documents);
 
     // Get recent users
     const recentUsers = await db.query.users.findMany({
@@ -77,18 +73,6 @@ export default async function AdminDashboard() {
                                 <div>
                                     <p className="text-sm text-gray-600">{t('admin.stats.assistants')}</p>
                                     <p className="text-2xl font-bold text-gray-900">{totalAssistants}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-purple-100 rounded-lg">
-                                    <FileText className="w-6 h-6 text-purple-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600">{t('admin.stats.documents')}</p>
-                                    <p className="text-2xl font-bold text-gray-900">{totalDocuments}</p>
                                 </div>
                             </div>
                         </div>

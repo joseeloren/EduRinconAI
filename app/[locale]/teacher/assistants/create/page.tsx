@@ -49,7 +49,7 @@ export default async function CreateAssistantPage() {
             })
             .returning();
 
-        redirect(`/teacher/assistants/${assistant.id}`);
+        redirect('/teacher');
     }
 
     return (

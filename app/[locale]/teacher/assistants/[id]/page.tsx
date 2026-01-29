@@ -13,7 +13,7 @@ import type { AssistantFormData } from '@/components/assistants/assistant-form';
 import { Button } from '@/components/ui/button';
 import { DeleteAssistantButton } from '@/components/assistants/delete-assistant-button';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MessageSquare } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
 import { getTranslations } from 'next-intl/server';
 
@@ -76,7 +76,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
             })
             .where(eq(assistants.id, id));
 
-        redirect(`/teacher/assistants/${id}`);
+        redirect('/teacher');
     }
 
     async function handleDeleteAssistant() {
@@ -122,6 +122,12 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                             assistantName={assistant.name}
                             onDelete={handleDeleteAssistant}
                         />
+                        <Link href={`/chat/${assistant.id}`}>
+                            <Button variant="outline" size="sm" className="ml-2">
+                                <MessageSquare className="h-4 w-4 mr-2" />
+                                {t('testChat')}
+                            </Button>
+                        </Link>
                     </div>
                 </div>
 

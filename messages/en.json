@@ -108,7 +108,8 @@
         "cancel": "Cancel",
         "deleting": "Deleting...",
         "delete": "Delete",
-        "deleteError": "Error deleting assistant"
+        "deleteError": "Error deleting assistant",
+        "testChat": "Test Chat"
     },
     "Login": {
         "title": "Welcome",

@@ -108,7 +108,8 @@
         "cancel": "Cancelar",
         "deleting": "Eliminando...",
         "delete": "Eliminar",
-        "deleteError": "Error al eliminar el asistente"
+        "deleteError": "Error al eliminar el asistente",
+        "testChat": "Probar Chat"
     },
     "Login": {
         "title": "Bienvenido",

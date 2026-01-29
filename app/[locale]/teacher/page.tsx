@@ -18,25 +18,16 @@ export default async function TeacherDashboard() {
     }
 
     // Get teacher's assistants
-    const teacherAssistants = await db.query.assistants.findMany({
+    const assistantsList = await db.query.assistants.findMany({
         where: eq(assistants.createdById, session.user.id),
         orderBy: (assistants, { desc }) => [desc(assistants.createdAt)],
     });
 
     // Get document counts for each assistant
-    const assistantsWithCounts = await Promise.all(
-        teacherAssistants.map(async (assistant) => {
-            const [{ count: docCount }] = await db
-                .select({ count: count() })
-                .from(documents)
-                .where(eq(documents.assistantId, assistant.id));
-
-            return {
-                ...assistant,
-                documentCount: docCount,
-            };
-        })
-    );
+    const teacherAssistants = assistantsList.map(assistant => ({
+        ...assistant,
+        documentCount: 0 // Hardcoded to 0 since documents feature is removed
+    }));
 
     const t = await getTranslations();
 

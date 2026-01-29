@@ -98,7 +98,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
     return (
         <>
             <Navbar user={session.user} />
-            <div className="container max-w-6xl py-8">
+            <div className="container max-w-6xl py-8 mx-auto">
                 {/* Header */}
                 <div className="mb-8">
                     <Link href="/teacher">

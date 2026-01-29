@@ -134,19 +134,21 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                     </TabsList>
 
                     {/* Information Tab */}
-                    <TabsContent value="info">
-                        <AssistantForm
-                            initialData={{
-                                id: assistant.id,
-                                name: assistant.name,
-                                description: assistant.description || '',
-                                systemPrompt: assistant.systemPrompt,
-                                temperature: assistant.temperature / 100,
-                                isPublic: assistant.isPublic === 1,
-                            }}
-                            onSubmit={handleUpdateAssistant}
-                            isEditing
-                        />
+                    <TabsContent value="info" className="flex justify-center">
+                        <div className="w-full max-w-3xl">
+                            <AssistantForm
+                                initialData={{
+                                    id: assistant.id,
+                                    name: assistant.name,
+                                    description: assistant.description || '',
+                                    systemPrompt: assistant.systemPrompt,
+                                    temperature: assistant.temperature / 100,
+                                    isPublic: assistant.isPublic === 1,
+                                }}
+                                onSubmit={handleUpdateAssistant}
+                                isEditing
+                            />
+                        </div>
                     </TabsContent>
 
                     {/* Documents Tab */}

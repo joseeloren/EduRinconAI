@@ -55,15 +55,18 @@ export default async function CreateAssistantPage() {
     return (
         <>
             <Navbar user={session.user} />
-            <div className="container max-w-4xl py-8">
-                <div className="mb-8">
+            <Navbar user={session.user} />
+            <div className="container max-w-4xl py-8 flex flex-col items-center">
+                <div className="mb-8 w-full">
                     <h1 className="text-3xl font-bold">{t('title')}</h1>
                     <p className="text-muted-foreground mt-2">
                         {t('subtitle')}
                     </p>
                 </div>
 
-                <AssistantForm onSubmit={handleCreateAssistant} />
+                <div className="w-full">
+                    <AssistantForm onSubmit={handleCreateAssistant} />
+                </div>
             </div>
         </>
     );

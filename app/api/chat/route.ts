@@ -4,7 +4,7 @@ import { assistants, chats, messages, assistantAccess } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
-import { retrieveContext, formatContextForPrompt } from '@/lib/rag/retriever';
+
 import { canAccessAssistant } from '@/lib/auth/roles';
 
 // Helper to ensure baseURL ends with /v1
@@ -92,35 +92,28 @@ export async function POST(request: Request) {
                 .returning();
         }
 
-        // Get last user message for RAG retrieval
-        const lastUserMessage = chatMessages
-            .filter((m: any) => m.role === 'user')
-            .pop();
+        // Process chat for pure LLM response (No RAG)
 
-        // Retrieve relevant context from RAG
-        const contexts = await retrieveContext(
-            lastUserMessage.content,
-            assistantId,
-            5,
-            0.6
-        );
-
-        const contextText = formatContextForPrompt(contexts);
-
-        // Build messages with system prompt and context
+        // Build messages with system prompt
         const systemMessage = {
             role: 'system' as const,
-            content: `${assistant.systemPrompt}\n\n${contextText}`,
+            content: assistant.systemPrompt,
         };
 
         const allMessages = [systemMessage, ...chatMessages];
 
-        // Save user message
-        await db.insert(messages).values({
-            chatId: chat.id,
-            role: 'user',
-            content: lastUserMessage.content,
-        });
+        // Save last user message
+        const lastUserMessage = chatMessages
+            .filter((m: any) => m.role === 'user')
+            .pop();
+
+        if (lastUserMessage) {
+            await db.insert(messages).values({
+                chatId: chat.id,
+                role: 'user',
+                content: lastUserMessage.content,
+            });
+        }
 
         // Stream response
         const modelName = process.env.LLM_MODEL_NAME || 'llama3.2';
@@ -132,16 +125,11 @@ export async function POST(request: Request) {
             temperature: (assistant.temperature || 70) / 100,
             maxTokens: 2000,
             async onFinish({ text }) {
-                // Save assistant message with sources
+                // Save assistant message
                 await db.insert(messages).values({
                     chatId: chat.id,
                     role: 'assistant',
                     content: text,
-                    sources: contexts.map((ctx) => ({
-                        documentId: ctx.documentId,
-                        documentName: ctx.documentName,
-                        similarity: ctx.similarity,
-                    })),
                 });
             },
         });

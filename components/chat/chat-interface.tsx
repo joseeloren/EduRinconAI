@@ -31,6 +31,12 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
     // TTS State
     const [isSpeaking, setIsSpeaking] = useState(false);
     const synthRef = useRef<SpeechSynthesis | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Scroll to bottom on new message
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
     // Initialize SpeechSynthesis
     useEffect(() => {

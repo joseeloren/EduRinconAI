@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AssistantForm } from '@/components/assistants/assistant-form';
 import { StudentAssignment } from '@/components/assistants/student-assignment';
-import { StudentAssignment } from '@/components/assistants/student-assignment';
+
 import type { AssistantFormData } from '@/components/assistants/assistant-form';
 import { Button } from '@/components/ui/button';
 import { DeleteAssistantButton } from '@/components/assistants/delete-assistant-button';

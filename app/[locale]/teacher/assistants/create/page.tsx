@@ -55,7 +55,7 @@ export default async function CreateAssistantPage() {
     return (
         <>
             <Navbar user={session.user} />
-            <Navbar user={session.user} />
+
             <div className="container max-w-4xl py-8 flex flex-col items-center mx-auto">
                 <div className="mb-8 w-full">
                     <h1 className="text-3xl font-bold">{t('title')}</h1>

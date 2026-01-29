@@ -5,6 +5,7 @@ import { Send, FileText } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
 import { useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { TalkingAvatar } from './talking-avatar';
 
 interface ChatInterfaceProps {
     assistantId: string;
@@ -33,8 +34,20 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // Get the last assistant message content for TTS
+    const lastAssistantMessage = messages
+        .filter(m => m.role === 'assistant')
+        .pop()?.content || '';
+
+    // ... useEffect for scrolling
+
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full relative">
+            {/* Absolute positioning for Avatar, floating top-right within chat area or in header if cleaner */}
+            <div className="absolute top-4 right-4 z-10 hidden md:block">
+                <TalkingAvatar text={lastAssistantMessage} />
+            </div>
+
             {/* Messages Container */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.length === 0 && (

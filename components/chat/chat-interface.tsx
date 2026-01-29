@@ -28,6 +28,8 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
         },
     });
 
+    const [isSpeaking, setIsSpeaking] = useState(false);
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -43,10 +45,15 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
 
     return (
         <div className="flex flex-col h-full relative">
-            {/* Absolute positioning for Avatar, floating top-right within chat area or in header if cleaner */}
-            <div className="absolute top-4 right-4 z-10 hidden md:block">
-                <TalkingAvatar text={lastAssistantMessage} />
+            {/* 3D Avatar Container - Bigger and properly positioned */}
+            <div className="absolute top-0 right-0 w-48 h-64 z-10 pointer-events-none hidden md:block">
+                <Avatar3DWrapper isSpeaking={isSpeaking} />
             </div>
+
+            {/* We still need the logic to drive TTS, can reuse TalkingAvatar logic or extract it. 
+                For now, let's keep it simple: we need to pass 'isSpeaking' state from the TTS engine.
+            */}
+
 
             {/* Messages Container */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">

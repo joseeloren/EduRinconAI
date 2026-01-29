@@ -115,26 +115,39 @@ export async function POST(request: Request) {
             });
         }
 
+
         // Stream response
         const modelName = process.env.LLM_MODEL_NAME || 'llama3.2';
-        console.log('Using LLM model:', modelName);
+        console.log(`[Chat API] Starting stream with model: ${modelName}`);
+        console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
-        const result = await streamText({
-            model: ollama(modelName),
-            messages: allMessages,
-            temperature: (assistant.temperature || 70) / 100,
-            maxTokens: 2000,
-            async onFinish({ text }) {
-                // Save assistant message
-                await db.insert(messages).values({
-                    chatId: chat.id,
-                    role: 'assistant',
-                    content: text,
-                });
-            },
-        });
+        try {
+            const result = await streamText({
+                model: ollama(modelName),
+                messages: allMessages,
+                temperature: (assistant.temperature || 70) / 100,
+                maxTokens: 2000,
+                // Add explicit error handling for the stream
+                onFinish: async ({ text }) => {
+                    console.log('[Chat API] Stream finished successfully');
+                    try {
+                        // Save assistant message
+                        await db.insert(messages).values({
+                            chatId: chat.id,
+                            role: 'assistant',
+                            content: text,
+                        });
+                    } catch (dbError) {
+                        console.error('[Chat API] Failed to save assistant message:', dbError);
+                    }
+                },
+            });
 
-        return result.toDataStreamResponse();
+            return result.toDataStreamResponse();
+        } catch (streamError) {
+            console.error('[Chat API] Stream creation failed:', streamError);
+            throw streamError; // Re-throw to be caught by outer try-catch
+        }
     } catch (error) {
         console.error('Chat API Error Details:', {
             error,

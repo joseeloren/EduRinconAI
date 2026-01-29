@@ -134,8 +134,8 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                     </TabsList>
 
                     {/* Information Tab */}
-                    <TabsContent value="info" className="flex justify-center">
-                        <div className="w-full max-w-3xl">
+                    <TabsContent value="info">
+                        <div className="w-full">
                             <AssistantForm
                                 initialData={{
                                     id: assistant.id,

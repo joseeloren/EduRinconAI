@@ -17,26 +17,28 @@ export function AssistantCard({ assistant, documentCount, userRole = 'TEACHER' }
         : `/teacher/assistants/${assistant.id}`;
 
     return (
-        <Link href={href}>
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+        <Link href={href} className="block h-full">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full flex flex-col">
                 <CardHeader>
                     <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
-                            <Bot className="h-5 w-5 text-primary" />
-                            <CardTitle className="text-lg">{assistant.name}</CardTitle>
+                            <Bot className="h-5 w-5 text-primary shrink-0" />
+                            <CardTitle className="text-lg line-clamp-1">{assistant.name}</CardTitle>
                         </div>
                         {assistant.isPublic === 1 && (
-                            <Badge variant="secondary">Público</Badge>
+                            <Badge variant="secondary" className="shrink-0">Público</Badge>
                         )}
                     </div>
                 </CardHeader>
 
-                <CardContent>
-                    {assistant.description && (
-                        <p className="text-gray-600 text-sm line-clamp-2 mb-4">{assistant.description}</p>
+                <CardContent className="flex-1 flex flex-col">
+                    {assistant.description ? (
+                        <p className="text-gray-600 text-sm line-clamp-3 mb-auto">{assistant.description}</p>
+                    ) : (
+                        <p className="text-gray-400 text-sm italic mb-auto">Sin descripción</p>
                     )}
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 mt-4 pt-4 border-t">
                         {assistant.isPublic === 1 ? (
                             <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
                                 Público
@@ -44,6 +46,12 @@ export function AssistantCard({ assistant, documentCount, userRole = 'TEACHER' }
                         ) : (
                             <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-full">
                                 Privado
+                            </span>
+                        )}
+                        {/* Show document count if provided */}
+                        {documentCount !== undefined && (
+                            <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                                {documentCount} docs
                             </span>
                         )}
                     </div>

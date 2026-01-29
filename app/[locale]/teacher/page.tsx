@@ -60,7 +60,8 @@ export default async function TeacherDashboard() {
                             {t('teacher.myAssistants')}
                         </h2>
 
-                        {assistantsWithCounts.length === 0 ? (
+
+                        {teacherAssistants.length === 0 ? (
                             <div className="bg-white rounded-xl p-12 text-center border-2 border-dashed border-gray-200">
                                 <Bot className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                                 <h3 className="text-xl font-semibold text-gray-900 mb-2">

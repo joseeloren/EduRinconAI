@@ -7,7 +7,9 @@
         "edit": "Edit",
         "delete": "Delete",
         "loading": "Loading...",
-        "saving": "Saving..."
+        "saving": "Saving...",
+        "public": "Public",
+        "private": "Private"
     },
     "roles": {
         "admin": "Administrator",

@@ -7,8 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AssistantForm } from '@/components/assistants/assistant-form';
 import { StudentAssignment } from '@/components/assistants/student-assignment';
-import { DocumentList } from '@/components/documents/document-list';
-import { UploadZone } from '@/components/documents/upload-zone';
+import { StudentAssignment } from '@/components/assistants/student-assignment';
 import type { AssistantFormData } from '@/components/assistants/assistant-form';
 import { Button } from '@/components/ui/button';
 import { DeleteAssistantButton } from '@/components/assistants/delete-assistant-button';
@@ -133,9 +132,8 @@ export default async function AssistantManagementPage({ params }: PageProps) {
 
                 {/* Tabs */}
                 <Tabs defaultValue="info" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-3">
+                    <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="info">{t('tabInfo')}</TabsTrigger>
-                        <TabsTrigger value="documents">{t('tabDocuments')}</TabsTrigger>
                         <TabsTrigger value="students">{t('tabStudents')}</TabsTrigger>
                     </TabsList>
 
@@ -157,32 +155,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                         </div>
                     </TabsContent>
 
-                    {/* Documents Tab */}
-                    <TabsContent value="documents" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('uploadDocuments')}</CardTitle>
-                                <CardDescription>
-                                    {t('uploadDescription')}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <UploadZone assistantId={id} />
-                            </CardContent>
-                        </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>{t('uploadedDocuments')}</CardTitle>
-                                <CardDescription>
-                                    {t('manageDocuments')}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <DocumentList assistantId={id} />
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
 
                     {/* Students Tab */}
                     <TabsContent value="students">

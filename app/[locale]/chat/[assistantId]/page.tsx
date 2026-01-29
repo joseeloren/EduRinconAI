@@ -86,11 +86,13 @@ export default async function ChatPage(props: {
 
             {/* Chat Interface */}
             <div className="flex-1 overflow-hidden">
-                <ChatInterface
-                    assistantId={assistantId}
-                    chatId={chatId as string}
-                    initialMessages={initialMessages}
-                />
+                <div className="container max-w-4xl mx-auto h-full flex flex-col py-4">
+                    <ChatInterface
+                        assistantId={assistantId}
+                        chatId={chatId as string}
+                        initialMessages={initialMessages}
+                    />
+                </div>
             </div>
         </div>
     );

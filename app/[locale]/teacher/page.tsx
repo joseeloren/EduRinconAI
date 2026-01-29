@@ -63,52 +63,6 @@ export default async function TeacherDashboard() {
                         </div>
                     </div>
 
-                    {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-blue-100 rounded-lg">
-                                    <Bot className="w-6 h-6 text-blue-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600">{t('teacher.stats.assistants')}</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {teacherAssistants.length}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-green-100 rounded-lg">
-                                    <BookOpen className="w-6 h-6 text-green-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600">{t('teacher.stats.documents')}</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {assistantsWithCounts.reduce((sum, a) => sum + a.documentCount, 0)}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white rounded-xl p-6 shadow-md border border-gray-100">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-purple-100 rounded-lg">
-                                    <Users className="w-6 h-6 text-purple-600" />
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600">{t('teacher.stats.students')}</p>
-                                    <p className="text-2xl font-bold text-gray-900">
-                                        {/* TODO: Count unique students assigned */}
-                                        -
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Assistants Grid */}
                     <div>
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">
@@ -144,7 +98,7 @@ export default async function TeacherDashboard() {
                         )}
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     );
 }

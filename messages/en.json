@@ -85,7 +85,9 @@
         "saving": "Saving...",
         "saveChanges": "Save Changes",
         "createAssistant": "Create Assistant",
-        "errorSaving": "Error saving assistant"
+        "errorSaving": "Error saving assistant",
+        "errorNameRequired": "Name is required",
+        "errorSystemPromptRequired": "System instructions are required"
     },
     "assistantManagement": {
         "backToDashboard": "Back to Dashboard",

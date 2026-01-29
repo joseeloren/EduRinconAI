@@ -30,7 +30,7 @@ interface AssistantFormProps {
 
 export function AssistantForm({ initialData, onSubmit, isEditing = false }: AssistantFormProps) {
     const router = useRouter();
-    const t = useTranslations('assistantManagement');
+    const t = useTranslations('assistantForm');
     const [name, setName] = useState(initialData?.name || '');
     const [description, setDescription] = useState(initialData?.description || '');
     const [systemPrompt, setSystemPrompt] = useState(initialData?.systemPrompt || '');

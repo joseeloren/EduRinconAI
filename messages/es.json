@@ -85,7 +85,9 @@
         "saving": "Guardando...",
         "saveChanges": "Guardar Cambios",
         "createAssistant": "Crear Asistente",
-        "errorSaving": "Error al guardar el asistente"
+        "errorSaving": "Error al guardar el asistente",
+        "errorNameRequired": "El nombre es obligatorio",
+        "errorSystemPromptRequired": "Las instrucciones del sistema son obligatorias"
     },
     "assistantManagement": {
         "backToDashboard": "Volver al Dashboard",

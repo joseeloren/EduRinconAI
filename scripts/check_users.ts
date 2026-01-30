@@ -1,6 +1,9 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.env.local' });
 
+console.log('📂 CWD:', process.cwd());
+console.log('🔑 DATABASE_URL:', process.env.DATABASE_URL ? 'Defined (starts with ' + process.env.DATABASE_URL.substring(0, 10) + '...)' : 'UNDEFINED');
+
 import { db } from '../db';
 import { users } from '../db/schema';
 

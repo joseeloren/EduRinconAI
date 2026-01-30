@@ -72,18 +72,21 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
 
 export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     return (
-        <div className="w-full h-full min-h-[300px]">
-            <Canvas className="bg-transparent" gl={{ alpha: true }} dpr={[1, 2]}>
-                <OrthographicCamera makeDefault position={[0, 1, 5]} zoom={80} />
+        <div className="w-full h-full min-h-[400px]">
+            <Canvas className="bg-transparent" camera={{ position: [0, 1.5, 4], fov: 50 }} gl={{ alpha: true }} dpr={[1, 2]}>
 
-                <ambientLight intensity={1} />
-                <directionalLight position={[5, 10, 5]} intensity={2} color="white" />
-                <pointLight position={[-10, 5, -5]} intensity={1} color="#4444ff" />
+                <ambientLight intensity={1.5} />
+                <directionalLight position={[5, 5, 5]} intensity={3} color="white" />
 
                 <AvatarErrorBoundary>
                     <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
                         <AvatarModel isSpeaking={isSpeaking} />
                     </Float>
+                    {/* Debug Object: Red Box at origin */}
+                    <mesh position={[1, 0, 0]}>
+                        <boxGeometry args={[0.5, 0.5, 0.5]} />
+                        <meshStandardMaterial color="red" />
+                    </mesh>
                 </AvatarErrorBoundary>
             </Canvas>
         </div>

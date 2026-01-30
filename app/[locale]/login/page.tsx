@@ -16,13 +16,12 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+    const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
         setLoading(true);
-
-        const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
 
         if (!captchaToken && !isDebugMode) {
             setError('Por favor, completa el captcha');
@@ -105,7 +104,7 @@ export default function LoginPage() {
                         />
                     </div>
 
-                    <Captcha onChange={setCaptchaToken} />
+                    {!isDebugMode && <Captcha onChange={setCaptchaToken} />}
 
                     {error && (
                         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">

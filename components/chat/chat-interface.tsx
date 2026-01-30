@@ -5,7 +5,7 @@ import { Send, FileText } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { Avatar3DWrapper } from './avatar-3d';
+
 
 interface ChatInterfaceProps {
     assistantId: string;

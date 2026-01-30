@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import { ChatInterface } from '@/components/chat/chat-interface';
-import { Avatar3DWrapper } from '@/components/chat/avatar-3d';
+import { Avatar3DWrapper } from '@/components/chat/avatar-scene';
 import { Navbar } from '@/components/ui/navbar';
 import { db } from '@/db';
 import { assistants } from '@/db/schema';

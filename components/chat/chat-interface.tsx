@@ -84,8 +84,10 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
     return (
         <div className="flex flex-col h-full relative">
             {/* 3D Avatar Container - Bigger and properly positioned */}
-            <div className="absolute top-0 right-0 w-48 h-64 z-10 pointer-events-none hidden md:block">
-                <Avatar3DWrapper isSpeaking={isSpeaking} />
+            <div className="absolute top-0 right-0 w-64 h-72 z-10 hidden md:block">
+                <div className="pointer-events-auto">
+                    <Avatar3DWrapper isSpeaking={isSpeaking} />
+                </div>
             </div>
 
             {/* We still need the logic to drive TTS, can reuse TalkingAvatar logic or extract it. 
@@ -94,7 +96,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
 
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 md:pr-80">
                 {messages.length === 0 && (
                     <div className="text-center text-gray-500 mt-8">
                         <p className="text-lg">{t('welcome')}</p>

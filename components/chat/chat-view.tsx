@@ -23,7 +23,7 @@ export function ChatView({ assistantId, chatId, initialMessages }: ChatViewProps
                 />
             </main>
 
-            <aside className="hidden lg:block w-80 shrink-0 h-full">
+            <aside className="hidden lg:block w-[450px] shrink-0 h-full">
                 <div className="bg-white rounded-lg shadow p-4 h-full flex flex-col">
                     <Avatar3DWrapper isSpeaking={isSpeaking} />
                 </div>

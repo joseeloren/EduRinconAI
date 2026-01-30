@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect, useState, useMemo, Component, ReactNode } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { AnimationClip, Object3D } from 'three';
@@ -22,7 +22,9 @@ interface Avatar3DProps {
     debugPose?: DebugPose | null;
 }
 
-// ... helper functions ...
+// URL local del modelo (usar modelo humano por defecto)
+const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
+
 /** Filtra las animaciones para incluir solo tracks cuyos nodos existen en la escena, evitando warnings de PropertyBinding */
 function filterAnimationsToMatchScene(clips: AnimationClip[], scene: Object3D): AnimationClip[] {
     const nodeNames = new Set<string>();
@@ -42,31 +44,6 @@ function filterAnimationsToMatchScene(clips: AnimationClip[], scene: Object3D): 
         })
         .filter((c): c is AnimationClip => c !== null);
 }
-
-class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
-    constructor(props: { children: ReactNode }) {
-        super(props);
-        this.state = { hasError: false };
-    }
-
-    static getDerivedStateFromError(_: Error) {
-        return { hasError: true };
-    }
-
-    componentDidCatch(error: Error, errorInfo: any) {
-        console.error("Avatar 3D Error:", error, errorInfo);
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return null; // Render nothing if avatar fails
-        }
-        return this.props.children;
-    }
-}
-
-// URL local del modelo (usar modelo humano por defecto)
-const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: Avatar3DProps) {
     const { scene, animations, nodes } = useGLTF(modelUrl);
@@ -289,6 +266,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
             .then((data) => {
                 if (Array.isArray(data)) {
                     setModels(data);
+                    // Validate saved selection exists in available models
                     setSelected((prev) => {
                         const exists = data.some((m: { url: string }) => m.url === prev);
                         if (!exists) {
@@ -366,13 +344,11 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 <directionalLight position={[0, 5, 5]} intensity={3} color="white" />
                 <pointLight position={[-5, 5, -5]} intensity={2} color="#4444ff" />
 
-                <AvatarErrorBoundary>
-                    <AvatarModel
-                        isSpeaking={isSpeaking}
-                        modelUrl={selected}
-                        debugPose={showDebug ? debugPose : null}
-                    />
-                </AvatarErrorBoundary>
+                <AvatarModel
+                    isSpeaking={isSpeaking}
+                    modelUrl={selected}
+                    debugPose={showDebug ? debugPose : null}
+                />
             </Canvas>
         </div>
     );

@@ -15,9 +15,10 @@ interface ChatInterfaceProps {
         role: 'user' | 'assistant' | 'system';
         content: string;
     }>;
+    onSpeakingChange?: (isSpeaking: boolean) => void;
 }
 
-export function ChatInterface({ assistantId, chatId, initialMessages = [] }: ChatInterfaceProps) {
+export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange }: ChatInterfaceProps) {
     const t = useTranslations('chat');
     const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
         api: '/api/chat',
@@ -76,12 +77,21 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
             voices.find(v => v.lang.includes('es'));
         if (preferredVoice) utterance.voice = preferredVoice;
 
-        utterance.onstart = () => setIsSpeaking(true);
-        utterance.onend = () => setIsSpeaking(false);
-        utterance.onerror = () => setIsSpeaking(false);
+        utterance.onstart = () => {
+            setIsSpeaking(true);
+            onSpeakingChange?.(true);
+        };
+        utterance.onend = () => {
+            setIsSpeaking(false);
+            onSpeakingChange?.(false);
+        };
+        utterance.onerror = () => {
+            setIsSpeaking(false);
+            onSpeakingChange?.(false);
+        };
 
         synthRef.current.speak(utterance);
-    }, [lastAssistantMessage]);
+    }, [lastAssistantMessage, onSpeakingChange]);
 
     // ... useEffect for scrolling
 

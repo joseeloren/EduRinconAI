@@ -43,7 +43,7 @@ interface Avatar3DProps {
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
     const { scene, animations } = useGLTF(modelUrl);
     const { actions } = useAnimations(animations, scene);
-    const group = useRef<any>();
+    const group = useRef<any>(null);
 
     useEffect(() => {
         // Play the first animation found (usually Walk for CesiumMan)

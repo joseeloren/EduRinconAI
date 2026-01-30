@@ -85,48 +85,78 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         const leftForeArm = nodes.mixamorigLeftForeArm || nodes.LeftForeArm;
         const head = nodes.mixamorigHead || nodes.Head;
 
+        // Gestures when speaking or Idle
         if (isSpeaking) {
             // Complex "Explaining" Gesture
-            // Base waves for slight constant motion
             const breathe = Math.sin(t * 1);
-            const emphasis = Math.sin(t * 4); // Fast wave for emphasis
-            const wide = Math.sin(t * 0.5);   // Slow wave for "open" gestures
+            const emphasis = Math.sin(t * 4); // Fast wave
+            const wide = Math.sin(t * 0.5);   // Slow wave
 
             // RIGHT ARM
             if (rightArm) {
-                // Base: Down and slightly forward (z: -1.2, x: 0.3)
-                // Add emphasis (x) and widening (y)
-                rightArm.rotation.z = -1.2 + breathe * 0.05;
-                rightArm.rotation.x = 0.3 + emphasis * 0.1 + wide * 0.1;
-                rightArm.rotation.y = -0.3 + wide * 0.3; // Open outward
+                // Conversational/Lower: Arms closer to body (z: -1.45)
+                // Hands slightly above waist, not chest height (x: 0.2)
+                rightArm.rotation.z = -1.45 + breathe * 0.03;
+                rightArm.rotation.x = 0.2 + emphasis * 0.05 + wide * 0.05;
+                rightArm.rotation.y = -0.3 + wide * 0.2;
             }
             if (rightForeArm) {
-                // Elbow bent (hand in front)
-                rightForeArm.rotation.x = -1.6 + emphasis * 0.1;
+                // Elbow bent approx 90 degrees or slightly more open for "low conversation"
+                // -1.4 is slightly more open than -1.6
+                rightForeArm.rotation.x = -1.4 + emphasis * 0.05;
                 rightForeArm.rotation.y = 0;
                 rightForeArm.rotation.z = 0;
             }
 
-            // LEFT ARM (Mirror)
+            // LEFT ARM
             if (leftArm) {
-                // Base: Down and slightly forward (z: 1.2, x: 0.3)
-                // Note: Left arm Z is usually positive for "down" in T-pose depending on rig, 
-                // but for Mixamo/Soldier left Z down is positive.
-                leftArm.rotation.z = 1.2 - breathe * 0.05;
-                leftArm.rotation.x = 0.3 + emphasis * 0.1 + wide * 0.1;
-                leftArm.rotation.y = 0.3 - wide * 0.3; // Open outward (mirror of right)
+                leftArm.rotation.z = 1.45 - breathe * 0.03;
+                leftArm.rotation.x = 0.2 + emphasis * 0.05 + wide * 0.05;
+                leftArm.rotation.y = 0.3 - wide * 0.2;
             }
             if (leftForeArm) {
-                // Elbow bent (hand in front)
-                leftForeArm.rotation.x = -1.6 + emphasis * 0.1;
+                leftForeArm.rotation.x = -1.4 + emphasis * 0.05;
                 leftForeArm.rotation.y = 0;
                 leftForeArm.rotation.z = 0;
             }
 
             // Head Emphasis
             if (head) {
-                head.rotation.x = emphasis * 0.05;
-                head.rotation.y = Math.sin(t * 2) * 0.1; // Looking around a bit
+                head.rotation.x = emphasis * 0.03;
+                head.rotation.y = Math.sin(t * 2) * 0.08;
+            }
+        } else {
+            // RELAXED IDLE POSE (Procedural override to avoid T-Pose)
+            const breathe = Math.sin(t * 0.5) * 0.02; // Slow breathing
+
+            if (rightArm) {
+                // Arms down by side
+                rightArm.rotation.z = -1.55 + breathe;
+                rightArm.rotation.x = 0.05;
+                rightArm.rotation.y = -0.1;
+            }
+            if (rightForeArm) {
+                // Relaxed forearm (almost straight down)
+                rightForeArm.rotation.x = -0.1;
+                rightForeArm.rotation.y = 0;
+                rightForeArm.rotation.z = 0;
+            }
+
+            if (leftArm) {
+                leftArm.rotation.z = 1.55 - breathe;
+                leftArm.rotation.x = 0.05;
+                leftArm.rotation.y = 0.1;
+            }
+            if (leftForeArm) {
+                leftForeArm.rotation.x = -0.1;
+                leftForeArm.rotation.y = 0;
+                leftForeArm.rotation.z = 0;
+            }
+
+            // Still head
+            if (head) {
+                head.rotation.x = 0;
+                head.rotation.y = Math.sin(t * 0.5) * 0.05; // Very subtle look around
             }
         }
     });

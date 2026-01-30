@@ -2,11 +2,8 @@
 
 import React, { useRef, useEffect, useState, Component, ReactNode } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, Environment, Float, OrthographicCamera } from '@react-three/drei';
+import { useGLTF, Environment, Float, OrthographicCamera, useAnimations } from '@react-three/drei';
 import { Vector3, Euler } from 'three';
-
-// URL de un avatar por defecto de Ready Player Me - Using Unisex verified model
-const DEFAULT_AVATAR_URL = 'https://models.readyplayer.me/64db313271701338d1e2e132.glb';
 
 interface Avatar3DProps {
     isSpeaking: boolean;
@@ -35,53 +32,52 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
     }
 }
 
-function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
-    const { scene, nodes } = useGLTF(modelUrl);
-    const headRef = useRef<any>(null);
-    const jawRef = useRef<any>(null);
+// URL local del modelo (CesiumMan como fallback robusto)
+const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 
-    // Configurar referencias a los huesos una vez cargado
+interface Avatar3DProps {
+    isSpeaking: boolean;
+    modelUrl?: string;
+}
+
+function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
+    const { scene, animations } = useGLTF(modelUrl);
+    const { actions } = useAnimations(animations, scene);
+    const group = useRef<any>();
+
     useEffect(() => {
-        // Recorrer la escena para encontrar la cabeza y la mandíbula
-        // Los nombres de los huesos varían, pero en RPM suelen ser 'Head' y 'Wolf3D_Head' o similar.
-        // Haremos una búsqueda básica.
-        scene.traverse((object: any) => {
-            if (object.isBone) {
-                if (object.name.includes('Head')) headRef.current = object;
-                // Para la mandíbula, a veces es un morph target en el mesh, no un hueso.
-                // Ready Player Me usa Morph Targets en el mesh 'Wolf3D_Head' normalmente.
+        // Play the first animation found (usually Walk for CesiumMan)
+        // If we want Idle, we might need to stop it. 
+        // CesiumMan only has "animation_0" which is a walk.
+        // Let's play it slowly to simulate "alive".
+        if (actions && animations.length > 0) {
+            const action = actions[animations[0].name];
+            if (action) {
+                action.reset().fadeIn(0.5).play();
+                action.timeScale = 0.5; // Slow walk
             }
-        });
-    }, [scene]);
+        }
+    }, [actions, animations]);
 
     useFrame((state) => {
-        if (!headRef.current) return;
+        if (!group.current) return;
 
-        // Movimiento suave de "respiración" / idle
-        const t = state.clock.getElapsedTime();
-        headRef.current.rotation.y = Math.sin(t / 2) * 0.1;
-        headRef.current.rotation.x = Math.sin(t / 1.5) * 0.05;
-
-        // Simulación de hablar (movimiento de mandíbula/cabeza más rápido)
+        // Simple "speaking" animation: bounce slightly
         if (isSpeaking) {
-            // "Vibrar" la escala o rotación pequeña para simular habla
-            headRef.current.rotation.x += Math.sin(t * 15) * 0.02;
-
-            // Si tuviéramos acceso a MorphTargets (visemes), los usaríamos aquí.
-            // Como fallback genérico, movemos ligeramente la cabeza verticalmente
-            headRef.current.position.y += Math.sin(t * 20) * 0.002;
+            group.current.scale.setScalar(2.1 + Math.sin(state.clock.elapsedTime * 10) * 0.05);
         } else {
-            // Reset suave si fuera necesario
+            group.current.scale.setScalar(2);
         }
     });
 
     return (
-        <primitive
-            object={scene}
-            position={[0, -1.8, 0]}
-            scale={[1.5, 1.5, 1.5]}
-            rotation={[0.1, 0, 0]}
-        />
+        <group ref={group}>
+            <primitive
+                object={scene}
+                position={[0, -2, 0]}
+                rotation={[0, Math.PI / 4, 0]}
+            />
+        </group>
     );
 }
 

@@ -1,16 +1,38 @@
 'use client';
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, Component, ReactNode } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, Environment, Float, OrthographicCamera } from '@react-three/drei';
 import { Vector3, Euler } from 'three';
 
-// URL de un avatar por defecto de Ready Player Me
-const DEFAULT_AVATAR_URL = 'https://models.readyplayer.me/63252174293cde763022569b.glb?morphTargets=ARKit,OculusVisemes'; // Official Demo Avatar
+// URL de un avatar por defecto de Ready Player Me - Using Unisex verified model
+const DEFAULT_AVATAR_URL = 'https://models.readyplayer.me/64db313271701338d1e2e132.glb';
 
 interface Avatar3DProps {
     isSpeaking: boolean;
     modelUrl?: string;
+}
+
+class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(_: Error) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error, errorInfo: any) {
+        console.error("Avatar 3D Error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return null; // Render nothing if avatar fails
+        }
+        return this.props.children;
+    }
 }
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
@@ -56,8 +78,8 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
     return (
         <primitive
             object={scene}
-            position={[0, -1.5, 0]}
-            scale={[1.4, 1.4, 1.4]}
+            position={[0, -1.8, 0]}
+            scale={[1.5, 1.5, 1.5]}
             rotation={[0.1, 0, 0]}
         />
     );
@@ -73,9 +95,11 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 <pointLight position={[10, 10, 10]} intensity={1} color="#ffffff" />
                 <pointLight position={[-10, 10, -5]} intensity={0.5} color="#blue" />
 
-                <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
-                    <AvatarModel isSpeaking={isSpeaking} />
-                </Float>
+                <AvatarErrorBoundary>
+                    <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
+                        <AvatarModel isSpeaking={isSpeaking} />
+                    </Float>
+                </AvatarErrorBoundary>
 
                 <Environment preset="city" />
             </Canvas>

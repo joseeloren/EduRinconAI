@@ -164,28 +164,42 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
             // RELAXED IDLE
             const breathe = Math.sin(t * 0.35) * 0.02;
 
-            // RIGHT ARM
+            // RIGHT ARM (Hombro)
             if (rightArm) {
-                rightArm.rotation.x = 0.35 + breathe;
-                rightArm.rotation.y = -0.05;
-                rightArm.rotation.z = -1.30;
+                rightArm.rotation.x = 0.56 + breathe;
+                rightArm.rotation.y = -0.54;
+                rightArm.rotation.z = -0.19;
             }
+            // RIGHT FOREARM (Codo)
             if (rightForeArm) {
-                rightForeArm.rotation.x = -0.75;
-                rightForeArm.rotation.y = 0;
-                rightForeArm.rotation.z = 0;
+                rightForeArm.rotation.x = 0.71;
+                rightForeArm.rotation.y = -0.14;
+                rightForeArm.rotation.z = -1.19;
+            }
+            // RIGHT HAND
+            if (rightHand) {
+                rightHand.rotation.x = 0.01;
+                rightHand.rotation.y = 0;
+                rightHand.rotation.z = 0;
             }
 
-            // LEFT ARM
+            // LEFT ARM (Hombro)
             if (leftArm) {
-                leftArm.rotation.x = 0.35 + breathe;
-                leftArm.rotation.y = 0.05;
-                leftArm.rotation.z = 1.30;
+                leftArm.rotation.x = 0.11 + breathe;
+                leftArm.rotation.y = 1.36;
+                leftArm.rotation.z = 0.61;
             }
+            // LEFT FOREARM (Codo)
             if (leftForeArm) {
-                leftForeArm.rotation.x = -0.75;
-                leftForeArm.rotation.y = 0;
-                leftForeArm.rotation.z = 0;
+                leftForeArm.rotation.x = -1.89;
+                leftForeArm.rotation.y = -2.59;
+                leftForeArm.rotation.z = -0.59;
+            }
+            // LEFT HAND
+            if (leftHand) {
+                leftHand.rotation.x = 0;
+                leftHand.rotation.y = 0;
+                leftHand.rotation.z = 0;
             }
 
             // HEAD

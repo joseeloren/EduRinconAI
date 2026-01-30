@@ -104,7 +104,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                         <div
-                            className={`max-w-[80%] rounded-lg px-4 py-2 ${message.role === 'user'
+                            className={`max-w-[90%] rounded-lg px-4 py-2 ${message.role === 'user'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-gray-100 text-gray-900'
                                 }`}

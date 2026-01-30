@@ -59,7 +59,7 @@ export default async function ChatPage(props: {
             <Navbar user={session.user} />
             {/* Header */}
             <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
-                <div className="flex items-center justify-between max-w-[95rem] mx-auto">
+                <div className="flex items-center justify-between w-full px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center gap-4">
                         <Link
                             href={session.user.role === 'STUDENT' ? '/student' : '/teacher'}
@@ -79,7 +79,7 @@ export default async function ChatPage(props: {
 
             {/* Chat Interface with right avatar aside */}
             <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-                <div className="max-w-[95rem] mx-auto flex-1 min-h-0 flex gap-8 items-stretch py-4 px-4">
+                <div className="w-full h-full flex gap-8 items-stretch py-4 px-4 sm:px-6 lg:px-8">
                     <main className="flex-1 min-h-0 flex flex-col">
                         <ChatInterface
                             assistantId={assistantId}

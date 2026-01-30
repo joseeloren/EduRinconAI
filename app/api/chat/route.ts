@@ -34,8 +34,9 @@ const ollamaFetchAgent = new Agent({
 });
 
 // Wrapper para usar undici con timeouts ampliados (compatible con tipos del AI SDK)
-const ollamaFetch = (input: RequestInfo | URL, init?: RequestInit) =>
-    undiciFetch(input as any, { ...init, dispatcher: ollamaFetchAgent } as any);
+const ollamaFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    return undiciFetch(input as any, { ...init, dispatcher: ollamaFetchAgent } as any) as unknown as Promise<Response>;
+};
 
 // Configure OpenAI provider for Ollama/LocalAI
 const ollama = createOpenAI({

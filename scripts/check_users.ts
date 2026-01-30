@@ -1,3 +1,5 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
 
 import { db } from '../db';
 import { users } from '../db/schema';

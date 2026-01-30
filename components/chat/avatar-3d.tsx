@@ -32,7 +32,7 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
     }
 }
 
-// URL local del modelo (Soldier - Humanoid)
+// URL local del modelo (Michelle - Humanoid)
 const DEFAULT_AVATAR_URL = '/models/teacher.glb';
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
@@ -86,9 +86,9 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         <group ref={group}>
             <primitive
                 object={scene}
-                position={[0, -1.6, 0]} // Soldier feet at bottom
-                rotation={[0, 0, 0]}
-                scale={1.4}
+                position={[0, -1.6, 0]} // Stand on ground
+                rotation={[0, Math.PI, 0]} // Rotate 180 to face camera
+                scale={1.5}
             />
         </group>
     );

@@ -32,27 +32,53 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
     }
 }
 
-// URL local del modelo (Human Figure)
+// URL local del modelo (Soldier - Humanoid)
 const DEFAULT_AVATAR_URL = '/models/teacher.glb';
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
-    const { scene } = useGLTF(modelUrl);
+    // @ts-ignore
+    const { scene, animations, nodes } = useGLTF(modelUrl);
+    const { actions } = useAnimations(animations, scene);
     const group = useRef<any>(null);
+
+    useEffect(() => {
+        // Play 'Idle' animation if available
+        if (actions && actions['Idle']) {
+            actions['Idle'].reset().fadeIn(0.5).play();
+        } else if (actions && Object.keys(actions).length > 0) {
+            const first = Object.keys(actions)[0];
+            actions[first]?.reset().fadeIn(0.5).play();
+        }
+    }, [actions]);
 
     useFrame((state) => {
         if (!group.current) return;
 
-        // Idle animation (Breathing)
         const t = state.clock.elapsedTime;
-        group.current.position.y = -0.5 + Math.sin(t) * 0.05;
 
-        // Speaking animation (Bounce + Rotate)
+        // Find bones dynamically (Solider uses mixamorig)
+        const rightArm = nodes.mixamorigRightArm || nodes.RightArm; // Shoulder
+        const rightForeArm = nodes.mixamorigRightForeArm || nodes.RightForeArm; // Elbow
+        const head = nodes.mixamorigHead || nodes.Head;
+
+        // Gestures when speaking
         if (isSpeaking) {
-            group.current.scale.setScalar(1.2 + Math.sin(t * 15) * 0.02);
-            group.current.rotation.y = Math.sin(t * 5) * 0.05;
-        } else {
-            group.current.scale.setScalar(1.2);
-            group.current.rotation.y = Math.sin(t * 0.5) * 0.05; // Slow sway
+            // "Talk" with hand (Raise arm and wave forearm)
+            if (rightArm) {
+                // Approximate rotation values (Soldier T-Pose is base)
+                // Add Math.sin to wiggle
+                rightArm.rotation.z = -0.2 + Math.sin(t * 8) * 0.1;
+                rightArm.rotation.x = 0.5 + Math.sin(t * 5) * 0.1;
+            }
+            if (rightForeArm) {
+                rightForeArm.rotation.x = -1.5 + Math.sin(t * 10) * 0.3;
+            }
+
+            // Head Bob
+            if (head) {
+                head.rotation.x = Math.sin(t * 15) * 0.05;
+                head.rotation.y = Math.sin(t * 4) * 0.1;
+            }
         }
     });
 
@@ -60,8 +86,9 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         <group ref={group}>
             <primitive
                 object={scene}
-                position={[0, -0.5, 0]}
+                position={[0, -1.6, 0]} // Soldier feet at bottom
                 rotation={[0, 0, 0]}
+                scale={1.4}
             />
         </group>
     );
@@ -77,9 +104,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 <pointLight position={[-5, 5, -5]} intensity={2} color="#4444ff" />
 
                 <AvatarErrorBoundary>
-                    <Float speed={2} rotationIntensity={0.05} floatIntensity={0.1}>
-                        <AvatarModel isSpeaking={isSpeaking} />
-                    </Float>
+                    <AvatarModel isSpeaking={isSpeaking} />
                 </AvatarErrorBoundary>
             </Canvas>
         </div>

@@ -27,20 +27,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Verify captcha if in production or token provided
                 // Verify captcha if in production or token provided
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const creds = credentials as any;
-                if (creds.captchaToken) {
+                console.log('🔐 Auth Attempt for:', credentials.email);
+                console.log('🎟️ Captcha Token:', creds.captchaToken);
+                console.log('🔧 Debug Mode:', process.env.NEXT_PUBLIC_DEBUG_MODE);
+
+                if (process.env.NEXT_PUBLIC_DEBUG_MODE === 'true') {
+                    console.log('⚠️ Debug/Bypass Captcha');
+                } else if (creds.captchaToken) {
                     const isCaptchaValid = await verifyCaptcha(creds.captchaToken as string);
                     if (!isCaptchaValid) {
+                        console.log('🚫 Captcha Invalid');
                         throw new Error('Captcha inválido');
                     }
                 } else if (process.env.NODE_ENV === 'production') {
-                    // En producción, exigir captcha
-                    // Comentado temporalmente para permitir login sin actualizar cliente
+                    // console.log('🚫 Captcha Required');
                     // throw new Error('Captcha requerido');
                 }
-
-                console.log('🔐 Auth Attempt:', credentials.email);
 
                 const user = await db.query.users.findFirst({
                     where: eq(users.email, credentials.email as string),

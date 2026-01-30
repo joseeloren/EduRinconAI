@@ -4,6 +4,7 @@ import { assistants, chats, messages, assistantAccess } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
+import { Agent, fetch as undiciFetch } from 'undici';
 
 import { canAccessAssistant } from '@/lib/auth/roles';
 
@@ -22,10 +23,24 @@ const getBaseURL = () => {
     return url;
 };
 
+// Timeouts para Ollama: modelos grandes (ej. deepseek-r1:32b) pueden tardar 60+ seg en responder
+const LLM_HEADERS_TIMEOUT_MS = parseInt(process.env.LLM_HEADERS_TIMEOUT_MS || '120000', 10); // 2 min
+const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '300000', 10);     // 5 min
+
+const ollamaFetchAgent = new Agent({
+    connect: { timeout: 30000 },
+    headersTimeout: LLM_HEADERS_TIMEOUT_MS,
+    bodyTimeout: LLM_BODY_TIMEOUT_MS,
+});
+
+const ollamaFetch = (input: RequestInfo | URL, init?: RequestInit) =>
+    undiciFetch(input, { ...init, dispatcher: ollamaFetchAgent } as any);
+
 // Configure OpenAI provider for Ollama/LocalAI
 const ollama = createOpenAI({
     baseURL: getBaseURL(),
     apiKey: process.env.LLM_API_KEY || 'ollama',
+    fetch: ollamaFetch,
 });
 
 export async function POST(request: Request) {
@@ -155,16 +170,26 @@ export async function POST(request: Request) {
             throw streamError; // Re-throw to be caught by outer try-catch
         }
     } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        const isOllamaTimeout =
+            message.includes('Headers Timeout') ||
+            message.includes('HeadersTimeoutError') ||
+            message.includes('Cannot connect to API');
+
         console.error('Chat API Error Details:', {
             error,
-            message: error instanceof Error ? error.message : 'Unknown error',
+            message,
             stack: error instanceof Error ? error.stack : undefined,
         });
+
+        const userMessage = isOllamaTimeout
+            ? 'No se pudo conectar a Ollama. Verifica que Ollama esté corriendo y que LLM_API_BASE_URL apunte al servidor correcto (no uses localhost si Ollama está en otra máquina).'
+            : message;
 
         return new Response(
             JSON.stringify({
                 error: 'Internal Server Error',
-                details: error instanceof Error ? error.message : String(error)
+                details: userMessage
             }),
             {
                 status: 500,

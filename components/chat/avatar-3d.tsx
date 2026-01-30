@@ -1,13 +1,33 @@
 'use client';
 
-import React, { useRef, useEffect, useState, Component, ReactNode } from 'react';
+import React, { useRef, useEffect, useState, useMemo, Component, ReactNode } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, Environment, Float, OrthographicCamera, useAnimations } from '@react-three/drei';
-import { Vector3, Euler } from 'three';
+import { useGLTF, useAnimations } from '@react-three/drei';
+import { AnimationClip, Object3D } from 'three';
 
 interface Avatar3DProps {
     isSpeaking: boolean;
     modelUrl?: string;
+}
+
+/** Filtra las animaciones para incluir solo tracks cuyos nodos existen en la escena, evitando warnings de PropertyBinding */
+function filterAnimationsToMatchScene(clips: AnimationClip[], scene: Object3D): AnimationClip[] {
+    const nodeNames = new Set<string>();
+    scene.traverse((obj) => {
+        if (obj.name) nodeNames.add(obj.name);
+    });
+
+    return clips
+        .map((clip) => {
+            const validTracks = clip.tracks.filter((track) => {
+                const path = track.name.split('.')[0];
+                const nodeName = path.includes('/') ? path.split('/').pop()! : path;
+                return nodeNames.has(nodeName);
+            });
+            if (validTracks.length === 0) return null;
+            return new AnimationClip(clip.name, clip.duration, validTracks);
+        })
+        .filter((c): c is AnimationClip => c !== null);
 }
 
 class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
@@ -36,9 +56,12 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
 const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
-    // @ts-ignore
     const { scene, animations, nodes } = useGLTF(modelUrl);
-    const { actions } = useAnimations(animations, scene);
+    const filteredAnimations = useMemo(
+        () => (animations?.length ? filterAnimationsToMatchScene(animations, scene) : []),
+        [animations, scene]
+    );
+    const { actions } = useAnimations(filteredAnimations, scene);
     const group = useRef<any>(null);
 
     useEffect(() => {

@@ -141,10 +141,13 @@ npm run seed         # Crear usuarios de prueba
 - Verificar que Docker esté corriendo: `docker ps`
 - Reiniciar contenedor: `docker-compose restart`
 
-### Error: LLM no responde
-- Verificar que Ollama esté corriendo en el VDI
-- Verificar la URL en `.env.local`
-- Probar conexión: `curl http://TU_IP_VDI:11434/v1/models`
+### Error: LLM no responde / Headers Timeout
+- **Si la app está en un servidor y Ollama en otra máquina**: NO uses `localhost`. Usa la IP del VDI: `LLM_API_BASE_URL="http://IP_VDI:11434/v1"`
+- Verificar que Ollama esté corriendo: `ollama list`
+- Probar conexión: `curl http://IP_VDI:11434/v1/models`
+- **Modelos grandes** (deepseek-r1:32b, etc.): Aumentar timeouts en `.env.local`:
+  - `LLM_HEADERS_TIMEOUT_MS=180000` (3 min)
+  - `LLM_BODY_TIMEOUT_MS=600000` (10 min)
 
 ### Error de permisos en Windows
 - Ejecutar terminal como Administrador

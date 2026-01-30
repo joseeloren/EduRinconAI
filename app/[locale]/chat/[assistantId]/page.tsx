@@ -88,8 +88,8 @@ export default async function ChatPage(props: {
                         />
                     </main>
 
-                    <aside className="hidden lg:block w-80 shrink-0 self-start">
-                        <div className="bg-white rounded-lg shadow p-4">
+                    <aside className="hidden lg:block w-80 shrink-0 h-full">
+                        <div className="bg-white rounded-lg shadow p-4 h-full flex flex-col">
                             <Avatar3DWrapper isSpeaking={false} />
                         </div>
                     </aside>

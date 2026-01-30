@@ -99,27 +99,24 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     const [selected, setSelected] = useState<string>(DEFAULT_AVATAR_URL);
 
     useEffect(() => {
-        // Load saved selection from localStorage
+        // Load saved selection from localStorage on mount
         try {
             const saved = localStorage.getItem('selectedAvatarModel');
             if (saved) setSelected(saved);
         } catch (e) {
             // ignore (SSR safety)
         }
+    }, []);
 
+    useEffect(() => {
         // Fetch available models from API
         fetch('/api/models')
             .then((res) => res.json())
             .then((data) => {
                 if (Array.isArray(data)) setModels(data);
-                // Ensure selected exists; fallback to default
-                const exists = Array.isArray(data) && data.find((m) => m.url === selected);
-                if (!exists && data.length > 0 && selected === DEFAULT_AVATAR_URL) {
-                    // keep default if user didn't choose
-                }
             })
-            .catch(() => {
-                // noop - keep default
+            .catch((err) => {
+                console.error('Failed to load models:', err);
             });
     }, []);
 
@@ -134,13 +131,13 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     };
 
     return (
-        <div className="w-full h-full min-h-[400px]">
-            <div className="mb-2 flex items-center gap-3">
-                <label className="text-sm text-gray-600">Modelo 3D:</label>
+        <div className="w-full h-full min-h-[400px] flex flex-col">
+            <div className="mb-2 flex items-center gap-3 pointer-events-auto relative z-20">
+                <label className="text-sm text-gray-600 font-medium">Modelo 3D:</label>
                 <select
                     value={selected}
                     onChange={onChange}
-                    className="px-2 py-1 border rounded-md bg-white text-sm"
+                    className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     <option value={DEFAULT_AVATAR_URL}>Humano (por defecto)</option>
                     {models.map((m) => (
@@ -149,7 +146,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 </select>
             </div>
 
-            <Canvas className="bg-transparent" camera={{ position: [0, 0.5, 3.5], fov: 45 }} gl={{ alpha: true }} dpr={[1, 2]}>
+            <Canvas className="flex-1 bg-transparent" camera={{ position: [0, 0.5, 3.5], fov: 45 }} gl={{ alpha: true }} dpr={[1, 2]}>
 
                 <ambientLight intensity={1.8} />
                 <directionalLight position={[0, 5, 5]} intensity={3} color="white" />

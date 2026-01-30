@@ -6,7 +6,7 @@ import { useGLTF, Environment, Float, OrthographicCamera } from '@react-three/dr
 import { Vector3, Euler } from 'three';
 
 // URL de un avatar por defecto de Ready Player Me
-const DEFAULT_AVATAR_URL = 'https://models.readyplayer.me/64f0263b860647bf3f8e6538.glb'; // Modelo de ejemplo
+const DEFAULT_AVATAR_URL = 'https://models.readyplayer.me/658aec57e62a056a23531b9d.glb'; // Updated valid model
 
 interface Avatar3DProps {
     isSpeaking: boolean;

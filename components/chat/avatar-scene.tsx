@@ -5,58 +5,26 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
 import { AnimationClip, Object3D } from 'three';
 
+type BoneRotation = { x: number; y: number; z: number };
+
+type DebugPose = {
+    rightArm: BoneRotation;
+    rightForeArm: BoneRotation;
+    rightHand: BoneRotation;
+    leftArm: BoneRotation;
+    leftForeArm: BoneRotation;
+    leftHand: BoneRotation;
+};
+
 interface Avatar3DProps {
     isSpeaking: boolean;
     modelUrl?: string;
-    manualRotation?: { x: number; y: number; z: number };
+    debugPose?: DebugPose | null;
 }
 
-/** Filtra las animaciones para incluir solo tracks cuyos nodos existen en la escena, evitando warnings de PropertyBinding */
-function filterAnimationsToMatchScene(clips: AnimationClip[], scene: Object3D): AnimationClip[] {
-    const nodeNames = new Set<string>();
-    scene.traverse((obj) => {
-        if (obj.name) nodeNames.add(obj.name);
-    });
+// ... helper functions ...
 
-    return clips
-        .map((clip) => {
-            const validTracks = clip.tracks.filter((track) => {
-                const path = track.name.split('.')[0];
-                const nodeName = path.includes('/') ? path.split('/').pop()! : path;
-                return nodeNames.has(nodeName);
-            });
-            if (validTracks.length === 0) return null;
-            return new AnimationClip(clip.name, clip.duration, validTracks);
-        })
-        .filter((c): c is AnimationClip => c !== null);
-}
-
-class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
-    constructor(props: { children: ReactNode }) {
-        super(props);
-        this.state = { hasError: false };
-    }
-
-    static getDerivedStateFromError(_: Error) {
-        return { hasError: true };
-    }
-
-    componentDidCatch(error: Error, errorInfo: any) {
-        console.error("Avatar 3D Error:", error, errorInfo);
-    }
-
-    render() {
-        if (this.state.hasError) {
-            return null; // Render nothing if avatar fails
-        }
-        return this.props.children;
-    }
-}
-
-// URL local del modelo (usar modelo humano por defecto)
-const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
-
-function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, manualRotation }: Avatar3DProps) {
+function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: Avatar3DProps) {
     const { scene, animations, nodes } = useGLTF(modelUrl);
     const filteredAnimations = useMemo(
         () => (animations?.length ? filterAnimationsToMatchScene(animations, scene) : []),
@@ -88,21 +56,44 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, manualRotation
         const rightHand = nodes.mixamorigRightHand || nodes.RightHand;
         const leftHand = nodes.mixamorigLeftHand || nodes.LeftHand;
 
-        if (manualRotation) {
-            // DEBUG MODE: Apply manual Rotation
+        if (debugPose) {
+            // DEBUG MODE: Apply manual Rotation to ALL bones
             if (rightArm) {
-                // Apply manual rotation to right arm for testing
-                rightArm.rotation.x = manualRotation.x;
-                rightArm.rotation.y = manualRotation.y;
-                rightArm.rotation.z = manualRotation.z;
+                rightArm.rotation.x = debugPose.rightArm.x;
+                rightArm.rotation.y = debugPose.rightArm.y;
+                rightArm.rotation.z = debugPose.rightArm.z;
             }
-            // Can extend to other bones if needed, but starting with RightArm as requested
+            if (rightForeArm) {
+                rightForeArm.rotation.x = debugPose.rightForeArm.x;
+                rightForeArm.rotation.y = debugPose.rightForeArm.y;
+                rightForeArm.rotation.z = debugPose.rightForeArm.z;
+            }
+            if (rightHand) {
+                rightHand.rotation.x = debugPose.rightHand.x;
+                rightHand.rotation.y = debugPose.rightHand.y;
+                rightHand.rotation.z = debugPose.rightHand.z;
+            }
+
+            if (leftArm) {
+                leftArm.rotation.x = debugPose.leftArm.x;
+                leftArm.rotation.y = debugPose.leftArm.y;
+                leftArm.rotation.z = debugPose.leftArm.z;
+            }
+            if (leftForeArm) {
+                leftForeArm.rotation.x = debugPose.leftForeArm.x;
+                leftForeArm.rotation.y = debugPose.leftForeArm.y;
+                leftForeArm.rotation.z = debugPose.leftForeArm.z;
+            }
+            if (leftHand) {
+                leftHand.rotation.x = debugPose.leftHand.x;
+                leftHand.rotation.y = debugPose.leftHand.y;
+                leftHand.rotation.z = debugPose.leftHand.z;
+            }
+
         } else if (isSpeaking) {
             /* ===========================
-        SPEAKING – EXPLICANDO
-        (como la imagen)
-        =========================== */
-
+           SPEAKING – EXPLICANDO
+           =========================== */
             const breathe = Math.sin(t * 0.6) * 0.015;
             const emphasis = Math.sin(t * 2.2) * 0.05;
             const sway = Math.sin(t * 0.4) * 0.04;
@@ -149,6 +140,7 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, manualRotation
                 head.rotation.y = Math.sin(t * 1.2) * 0.05;
             }
         } else {
+            // RELAXED IDLE
             const breathe = Math.sin(t * 0.35) * 0.02;
 
             // RIGHT ARM
@@ -180,7 +172,6 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, manualRotation
                 head.rotation.x = 0;
                 head.rotation.y = Math.sin(t * 0.25) * 0.03;
             }
-
         }
     });
 
@@ -189,12 +180,40 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, manualRotation
             <primitive
                 object={scene}
                 position={[0, -1.6, 0]} // Stand on ground
-                rotation={[0, modelUrl.includes('Soldier.glb') ? Math.PI : 0, 0]} // Face forward (Soldier needs 180deg)
+                rotation={[0, modelUrl.includes('Soldier.glb') ? Math.PI : 0, 0]} // Face forward
                 scale={1.5}
             />
         </group>
     );
 }
+
+const BoneControl = ({ label, value, onChange }: { label: string, value: BoneRotation, onChange: (v: BoneRotation) => void }) => {
+    return (
+        <div className="mb-2 p-2 border border-blue-100 rounded bg-blue-50/50">
+            <div className="text-xs font-bold mb-1 text-blue-800">{label}</div>
+            <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-1">
+                    <span className="w-3 text-[10px] font-bold text-red-500">X</span>
+                    <input type="range" min="-3.14" max="3.14" step="0.05" value={value.x}
+                        onChange={(e) => onChange({ ...value, x: parseFloat(e.target.value) })} className="flex-1 h-1" />
+                    <span className="w-6 text-[10px] text-right font-mono">{value.x.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <span className="w-3 text-[10px] font-bold text-green-500">Y</span>
+                    <input type="range" min="-3.14" max="3.14" step="0.05" value={value.y}
+                        onChange={(e) => onChange({ ...value, y: parseFloat(e.target.value) })} className="flex-1 h-1" />
+                    <span className="w-6 text-[10px] text-right font-mono">{value.y.toFixed(2)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <span className="w-3 text-[10px] font-bold text-blue-500">Z</span>
+                    <input type="range" min="-3.14" max="3.14" step="0.05" value={value.z}
+                        onChange={(e) => onChange({ ...value, z: parseFloat(e.target.value) })} className="flex-1 h-1" />
+                    <span className="w-6 text-[10px] text-right font-mono">{value.z.toFixed(2)}</span>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     const [models, setModels] = useState<Array<{ name: string; url: string }>>([]);
@@ -202,18 +221,21 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
 
     // DEBUG STATE
     const [showDebug, setShowDebug] = useState(false);
-    const [rotX, setRotX] = useState(0);
-    const [rotY, setRotY] = useState(0);
-    const [rotZ, setRotZ] = useState(-1.3); // Default roughly
+    const [debugPose, setDebugPose] = useState<DebugPose>({
+        rightArm: { x: 0, y: 0, z: -1.3 },
+        rightForeArm: { x: 0, y: 0, z: 0 },
+        rightHand: { x: 0, y: 0, z: 0 },
+        leftArm: { x: 0, y: 0, z: 1.3 },
+        leftForeArm: { x: 0, y: 0, z: 0 },
+        leftHand: { x: 0, y: 0, z: 0 },
+    });
 
     useEffect(() => {
         // Load saved selection from localStorage on mount
         try {
             const saved = localStorage.getItem('selectedAvatarModel');
             if (saved) setSelected(saved);
-        } catch (e) {
-            // ignore (SSR safety)
-        }
+        } catch (e) { }
     }, []);
 
     useEffect(() => {
@@ -223,43 +245,36 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
             .then((data) => {
                 if (Array.isArray(data)) {
                     setModels(data);
-                    // Validate saved selection exists in available models
                     setSelected((prev) => {
                         const exists = data.some((m: { url: string }) => m.url === prev);
                         if (!exists) {
-                            try {
-                                localStorage.setItem('selectedAvatarModel', DEFAULT_AVATAR_URL);
-                            } catch {
-                                /* ignore */
-                            }
+                            try { localStorage.setItem('selectedAvatarModel', DEFAULT_AVATAR_URL); } catch { }
                             return DEFAULT_AVATAR_URL;
                         }
                         return prev;
                     });
                 }
             })
-            .catch((err) => {
-                console.error('Failed to load models:', err);
-            });
+            .catch((err) => console.error('Failed to load models:', err));
     }, []);
 
     const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const val = e.target.value;
         setSelected(val);
-        try {
-            localStorage.setItem('selectedAvatarModel', val);
-        } catch (e) {
-            // ignore
-        }
+        try { localStorage.setItem('selectedAvatarModel', val); } catch (e) { }
     };
 
     const options = models.length > 0
         ? models
         : [{ name: 'Humano (por defecto)', url: DEFAULT_AVATAR_URL }];
 
+    const updateBone = (bone: keyof DebugPose, val: BoneRotation) => {
+        setDebugPose(prev => ({ ...prev, [bone]: val }));
+    };
+
     return (
         <div className="w-full h-full min-h-[400px] flex flex-col relative">
-            <div className="mb-2 flex flex-col gap-2 pointer-events-auto relative z-20 bg-white/80 p-2 rounded">
+            <div className="mb-2 flex flex-col gap-2 pointer-events-auto relative z-20 bg-white/90 p-2 rounded shadow-sm">
                 <div className="flex items-center gap-3">
                     <label className="text-sm text-gray-600 font-medium">Modelo 3D:</label>
                     <select
@@ -273,29 +288,29 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                     </select>
                     <button
                         onClick={() => setShowDebug(!showDebug)}
-                        className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                        className={`text-xs px-2 py-1 rounded font-medium ${showDebug ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}
                     >
-                        {showDebug ? 'Hide Debug' : 'Debug'}
+                        {showDebug ? 'Cerrar Debug' : 'Debug'}
                     </button>
                 </div>
 
                 {showDebug && (
-                    <div className="flex flex-col gap-1 p-2 bg-gray-100 rounded text-xs">
-                        <div className="font-bold">Brazo Derecho (Test)</div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-4">X:</span>
-                            <input type="range" min="-3.14" max="3.14" step="0.05" value={rotX} onChange={(e) => setRotX(parseFloat(e.target.value))} className="flex-1" />
-                            <span className="w-8 text-right">{rotX.toFixed(2)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-4">Y:</span>
-                            <input type="range" min="-3.14" max="3.14" step="0.05" value={rotY} onChange={(e) => setRotY(parseFloat(e.target.value))} className="flex-1" />
-                            <span className="w-8 text-right">{rotY.toFixed(2)}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-4">Z:</span>
-                            <input type="range" min="-3.14" max="3.14" step="0.05" value={rotZ} onChange={(e) => setRotZ(parseFloat(e.target.value))} className="flex-1" />
-                            <span className="w-8 text-right">{rotZ.toFixed(2)}</span>
+                    <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1 border-t pt-2">
+                        <div className="text-[10px] text-gray-500 text-center font-mono">DEBUG MODE ACTIVE - ANIMATION PAUSED</div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                            <div>
+                                <h4 className="font-bold text-xs text-center mb-1 text-gray-700">RIGHT (Derecha)</h4>
+                                <BoneControl label="Right Arm (Hombro)" value={debugPose.rightArm} onChange={(v) => updateBone('rightArm', v)} />
+                                <BoneControl label="Right ForeArm (Codo)" value={debugPose.rightForeArm} onChange={(v) => updateBone('rightForeArm', v)} />
+                                <BoneControl label="Right Hand (Mano)" value={debugPose.rightHand} onChange={(v) => updateBone('rightHand', v)} />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-xs text-center mb-1 text-gray-700">LEFT (Izquierda)</h4>
+                                <BoneControl label="Left Arm (Hombro)" value={debugPose.leftArm} onChange={(v) => updateBone('leftArm', v)} />
+                                <BoneControl label="Left ForeArm (Codo)" value={debugPose.leftForeArm} onChange={(v) => updateBone('leftForeArm', v)} />
+                                <BoneControl label="Left Hand (Mano)" value={debugPose.leftHand} onChange={(v) => updateBone('leftHand', v)} />
+                            </div>
                         </div>
                     </div>
                 )}
@@ -311,7 +326,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                     <AvatarModel
                         isSpeaking={isSpeaking}
                         modelUrl={selected}
-                        manualRotation={showDebug ? { x: rotX, y: rotY, z: rotZ } : undefined}
+                        debugPose={showDebug ? debugPose : null}
                     />
                 </AvatarErrorBoundary>
             </Canvas>

@@ -79,34 +79,54 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
 
         const t = state.clock.elapsedTime;
 
-        // Find bones dynamically (Solider uses mixamorig)
-        const rightArm = nodes.mixamorigRightArm || nodes.RightArm; // Shoulder
-        const rightForeArm = nodes.mixamorigRightForeArm || nodes.RightForeArm; // Elbow
+        const rightArm = nodes.mixamorigRightArm || nodes.RightArm;
+        const rightForeArm = nodes.mixamorigRightForeArm || nodes.RightForeArm;
+        const leftArm = nodes.mixamorigLeftArm || nodes.LeftArm;
+        const leftForeArm = nodes.mixamorigLeftForeArm || nodes.LeftForeArm;
         const head = nodes.mixamorigHead || nodes.Head;
 
-        // Gestures when speaking
         if (isSpeaking) {
-            // "Talk" with hand (Raise arm and wave forearm)
+            // Complex "Explaining" Gesture
+            // Base waves for slight constant motion
+            const breathe = Math.sin(t * 1);
+            const emphasis = Math.sin(t * 4); // Fast wave for emphasis
+            const wide = Math.sin(t * 0.5);   // Slow wave for "open" gestures
+
+            // RIGHT ARM
             if (rightArm) {
-                // More natural position: Arm down by side but slightly forward
-                // z: -1.4 (down), x: 0.3 (forward), y: -0.2 (slight twist in)
-                rightArm.rotation.z = -1.4 + Math.sin(t * 8) * 0.05;
-                rightArm.rotation.x = 0.3 + Math.sin(t * 5) * 0.05;
-                // Force Y to avoid weird twists from existing animations
-                rightArm.rotation.y = -0.2;
+                // Base: Down and slightly forward (z: -1.2, x: 0.3)
+                // Add emphasis (x) and widening (y)
+                rightArm.rotation.z = -1.2 + breathe * 0.05;
+                rightArm.rotation.x = 0.3 + emphasis * 0.1 + wide * 0.1;
+                rightArm.rotation.y = -0.3 + wide * 0.3; // Open outward
             }
             if (rightForeArm) {
-                // Bend elbow (hand up)
-                rightForeArm.rotation.x = -1.8 + Math.sin(t * 10) * 0.2;
-                // Ensure forearm doesn't twist weirdly
+                // Elbow bent (hand in front)
+                rightForeArm.rotation.x = -1.6 + emphasis * 0.1;
                 rightForeArm.rotation.y = 0;
                 rightForeArm.rotation.z = 0;
             }
 
-            // Head Bob
+            // LEFT ARM (Mirror)
+            if (leftArm) {
+                // Base: Down and slightly forward (z: 1.2, x: 0.3)
+                // Note: Left arm Z is usually positive for "down" in T-pose depending on rig, 
+                // but for Mixamo/Soldier left Z down is positive.
+                leftArm.rotation.z = 1.2 - breathe * 0.05;
+                leftArm.rotation.x = 0.3 + emphasis * 0.1 + wide * 0.1;
+                leftArm.rotation.y = 0.3 - wide * 0.3; // Open outward (mirror of right)
+            }
+            if (leftForeArm) {
+                // Elbow bent (hand in front)
+                leftForeArm.rotation.x = -1.6 + emphasis * 0.1;
+                leftForeArm.rotation.y = 0;
+                leftForeArm.rotation.z = 0;
+            }
+
+            // Head Emphasis
             if (head) {
-                head.rotation.x = Math.sin(t * 15) * 0.02; // reduced bob
-                head.rotation.y = Math.sin(t * 4) * 0.05;
+                head.rotation.x = emphasis * 0.05;
+                head.rotation.y = Math.sin(t * 2) * 0.1; // Looking around a bit
             }
         }
     });

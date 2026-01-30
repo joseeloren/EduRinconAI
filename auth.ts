@@ -27,6 +27,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                 // Verify captcha if in production or token provided
                 // Verify captcha if in production or token provided
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const creds = credentials as any;
                 console.log('🔐 Auth Attempt for:', credentials.email);
                 console.log('🎟️ Captcha Token:', creds.captchaToken);
                 console.log('🔧 Debug Mode:', process.env.NEXT_PUBLIC_DEBUG_MODE);

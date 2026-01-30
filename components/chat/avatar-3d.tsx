@@ -113,7 +113,22 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
         fetch('/api/models')
             .then((res) => res.json())
             .then((data) => {
-                if (Array.isArray(data)) setModels(data);
+                if (Array.isArray(data)) {
+                    setModels(data);
+                    // Validate saved selection exists in available models
+                    setSelected((prev) => {
+                        const exists = data.some((m: { url: string }) => m.url === prev);
+                        if (!exists) {
+                            try {
+                                localStorage.setItem('selectedAvatarModel', DEFAULT_AVATAR_URL);
+                            } catch {
+                                /* ignore */
+                            }
+                            return DEFAULT_AVATAR_URL;
+                        }
+                        return prev;
+                    });
+                }
             })
             .catch((err) => {
                 console.error('Failed to load models:', err);
@@ -130,6 +145,10 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
         }
     };
 
+    const options = models.length > 0
+        ? models
+        : [{ name: 'Humano (por defecto)', url: DEFAULT_AVATAR_URL }];
+
     return (
         <div className="w-full h-full min-h-[400px] flex flex-col">
             <div className="mb-2 flex items-center gap-3 pointer-events-auto relative z-20">
@@ -137,10 +156,9 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 <select
                     value={selected}
                     onChange={onChange}
-                    className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                    <option value={DEFAULT_AVATAR_URL}>Humano (por defecto)</option>
-                    {models.map((m) => (
+                    {options.map((m) => (
                         <option key={m.url} value={m.url}>{m.name}</option>
                     ))}
                 </select>

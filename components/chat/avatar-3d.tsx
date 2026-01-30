@@ -32,30 +32,27 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
     }
 }
 
-// URL local del modelo (CesiumMan como fallback robusto)
-const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
+// URL local del modelo (Human Figure)
+const DEFAULT_AVATAR_URL = '/models/teacher.glb';
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
-    const { scene, animations } = useGLTF(modelUrl);
-    const { actions } = useAnimations(animations, scene);
+    const { scene } = useGLTF(modelUrl);
     const group = useRef<any>(null);
-
-    useEffect(() => {
-        if (actions && animations.length > 0) {
-            const action = actions[animations[0].name];
-            if (action) {
-                action.reset().fadeIn(0.5).play();
-                action.timeScale = 0.5;
-            }
-        }
-    }, [actions, animations]);
 
     useFrame((state) => {
         if (!group.current) return;
+
+        // Idle animation (Breathing)
+        const t = state.clock.elapsedTime;
+        group.current.position.y = -0.5 + Math.sin(t) * 0.05;
+
+        // Speaking animation (Bounce + Rotate)
         if (isSpeaking) {
-            group.current.scale.setScalar(2.1 + Math.sin(state.clock.elapsedTime * 10) * 0.05);
+            group.current.scale.setScalar(1.2 + Math.sin(t * 15) * 0.02);
+            group.current.rotation.y = Math.sin(t * 5) * 0.05;
         } else {
-            group.current.scale.setScalar(2);
+            group.current.scale.setScalar(1.2);
+            group.current.rotation.y = Math.sin(t * 0.5) * 0.05; // Slow sway
         }
     });
 
@@ -63,8 +60,8 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         <group ref={group}>
             <primitive
                 object={scene}
-                position={[0, -0.9, 0]}
-                rotation={[0, Math.PI / 6, 0]}
+                position={[0, -0.5, 0]}
+                rotation={[0, 0, 0]}
             />
         </group>
     );

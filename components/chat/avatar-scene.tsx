@@ -43,6 +43,28 @@ function filterAnimationsToMatchScene(clips: AnimationClip[], scene: Object3D): 
         .filter((c): c is AnimationClip => c !== null);
 }
 
+class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+    constructor(props: { children: ReactNode }) {
+        super(props);
+        this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(_: Error) {
+        return { hasError: true };
+    }
+
+    componentDidCatch(error: Error, errorInfo: any) {
+        console.error("Avatar 3D Error:", error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return null; // Render nothing if avatar fails
+        }
+        return this.props.children;
+    }
+}
+
 // URL local del modelo (usar modelo humano por defecto)
 const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 

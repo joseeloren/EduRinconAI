@@ -88,19 +88,25 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         if (isSpeaking) {
             // "Talk" with hand (Raise arm and wave forearm)
             if (rightArm) {
-                // Approximate rotation values (Soldier T-Pose is base)
-                // Add Math.sin to wiggle
-                rightArm.rotation.z = -0.2 + Math.sin(t * 8) * 0.1;
-                rightArm.rotation.x = 0.5 + Math.sin(t * 5) * 0.1;
+                // More natural position: Arm down by side but slightly forward
+                // z: -1.4 (down), x: 0.3 (forward), y: -0.2 (slight twist in)
+                rightArm.rotation.z = -1.4 + Math.sin(t * 8) * 0.05;
+                rightArm.rotation.x = 0.3 + Math.sin(t * 5) * 0.05;
+                // Force Y to avoid weird twists from existing animations
+                rightArm.rotation.y = -0.2;
             }
             if (rightForeArm) {
-                rightForeArm.rotation.x = -1.5 + Math.sin(t * 10) * 0.3;
+                // Bend elbow (hand up)
+                rightForeArm.rotation.x = -1.8 + Math.sin(t * 10) * 0.2;
+                // Ensure forearm doesn't twist weirdly
+                rightForeArm.rotation.y = 0;
+                rightForeArm.rotation.z = 0;
             }
 
             // Head Bob
             if (head) {
-                head.rotation.x = Math.sin(t * 15) * 0.05;
-                head.rotation.y = Math.sin(t * 4) * 0.1;
+                head.rotation.x = Math.sin(t * 15) * 0.02; // reduced bob
+                head.rotation.y = Math.sin(t * 4) * 0.05;
             }
         }
     });

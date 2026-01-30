@@ -26,6 +26,10 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [] }: Cha
             assistantId,
             chatId,
         },
+        onError: (error) => {
+            console.error('Chat error:', error);
+            // Could add a toast here if we had the toast hook ready, or just let it log
+        },
     });
 
     // TTS State

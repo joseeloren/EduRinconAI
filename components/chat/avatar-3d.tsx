@@ -187,7 +187,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 </select>
             </div>
 
-            <Canvas className="flex-1 bg-transparent" camera={{ position: [0, 0.2, 0.5], fov: 45 }} gl={{ alpha: true }} dpr={[1, 2]}>
+            <Canvas className="flex-1 bg-transparent" camera={{ position: [0, 0.2, 5.5], fov: 45 }} gl={{ alpha: true }} dpr={[1, 2]}>
 
                 <ambientLight intensity={1.8} />
                 <directionalLight position={[0, 5, 5]} intensity={3} color="white" />

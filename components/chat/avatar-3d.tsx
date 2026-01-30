@@ -32,8 +32,8 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
     }
 }
 
-// URL local del modelo (Xbot - Android/Human)
-const DEFAULT_AVATAR_URL = '/models/teacher.glb';
+// URL local del modelo (usar modelo humano por defecto)
+const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
     // @ts-ignore
@@ -95,8 +95,60 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
 }
 
 export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
+    const [models, setModels] = useState<Array<{ name: string; url: string }>>([]);
+    const [selected, setSelected] = useState<string>(DEFAULT_AVATAR_URL);
+
+    useEffect(() => {
+        // Load saved selection from localStorage
+        try {
+            const saved = localStorage.getItem('selectedAvatarModel');
+            if (saved) setSelected(saved);
+        } catch (e) {
+            // ignore (SSR safety)
+        }
+
+        // Fetch available models from API
+        fetch('/api/models')
+            .then((res) => res.json())
+            .then((data) => {
+                if (Array.isArray(data)) setModels(data);
+                // Ensure selected exists; fallback to default
+                const exists = Array.isArray(data) && data.find((m) => m.url === selected);
+                if (!exists && data.length > 0 && selected === DEFAULT_AVATAR_URL) {
+                    // keep default if user didn't choose
+                }
+            })
+            .catch(() => {
+                // noop - keep default
+            });
+    }, []);
+
+    const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const val = e.target.value;
+        setSelected(val);
+        try {
+            localStorage.setItem('selectedAvatarModel', val);
+        } catch (e) {
+            // ignore
+        }
+    };
+
     return (
         <div className="w-full h-full min-h-[400px]">
+            <div className="mb-2 flex items-center gap-3">
+                <label className="text-sm text-gray-600">Modelo 3D:</label>
+                <select
+                    value={selected}
+                    onChange={onChange}
+                    className="px-2 py-1 border rounded-md bg-white text-sm"
+                >
+                    <option value={DEFAULT_AVATAR_URL}>Humano (por defecto)</option>
+                    {models.map((m) => (
+                        <option key={m.url} value={m.url}>{m.name}</option>
+                    ))}
+                </select>
+            </div>
+
             <Canvas className="bg-transparent" camera={{ position: [0, 0.5, 3.5], fov: 45 }} gl={{ alpha: true }} dpr={[1, 2]}>
 
                 <ambientLight intensity={1.8} />
@@ -104,7 +156,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 <pointLight position={[-5, 5, -5]} intensity={2} color="#4444ff" />
 
                 <AvatarErrorBoundary>
-                    <AvatarModel isSpeaking={isSpeaking} />
+                    <AvatarModel isSpeaking={isSpeaking} modelUrl={selected} />
                 </AvatarErrorBoundary>
             </Canvas>
         </div>

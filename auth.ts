@@ -40,20 +40,30 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     // throw new Error('Captcha requerido');
                 }
 
+                console.log('🔐 Auth Attempt:', credentials.email);
+
                 const user = await db.query.users.findFirst({
                     where: eq(users.email, credentials.email as string),
                 });
 
+                console.log('👤 User Found:', user ? 'YES' : 'NO');
+
                 if (!user) {
+                    console.log('❌ User not found in DB');
                     return null;
                 }
+
+                console.log('🔑 Hashed Password in DB:', user.passwordHash.substring(0, 10) + '...');
 
                 const isValidPassword = await bcrypt.compare(
                     credentials.password as string,
                     user.passwordHash
                 );
 
+                console.log('✅ Password Valid:', isValidPassword);
+
                 if (!isValidPassword) {
+                    console.log('❌ Password mismatch');
                     return null;
                 }
 

@@ -9,6 +9,8 @@ const FRIENDLY_NAMES: Record<string, string> = {
     'BrainStem.glb': 'BrainStem (avatar)',
     'astronaut.glb': 'Astronauta',
     'teacher.glb': 'Profesor',
+    'Soldier.glb': 'Soldado (Animado)',
+    'RobotExpressive.glb': 'Robot Expresivo',
 };
 
 function getFriendlyName(filename: string): string {

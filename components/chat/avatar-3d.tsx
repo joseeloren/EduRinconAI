@@ -32,7 +32,7 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
     }
 }
 
-// URL local del modelo (Michelle - Humanoid)
+// URL local del modelo (Xbot - Android/Human)
 const DEFAULT_AVATAR_URL = '/models/teacher.glb';
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {

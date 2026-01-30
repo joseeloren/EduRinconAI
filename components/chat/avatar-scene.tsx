@@ -24,6 +24,9 @@ interface Avatar3DProps {
 
 // ... helper functions ...
 
+// URL local del modelo (usar modelo humano por defecto)
+const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
+
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: Avatar3DProps) {
     const { scene, animations, nodes } = useGLTF(modelUrl);
     const filteredAnimations = useMemo(

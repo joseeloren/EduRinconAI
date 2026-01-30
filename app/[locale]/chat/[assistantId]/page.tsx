@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { ChatInterface } from '@/components/chat/chat-interface';
+import { Avatar3DWrapper } from '@/components/chat/avatar-3d';
 import { Navbar } from '@/components/ui/navbar';
 import { db } from '@/db';
 import { assistants } from '@/db/schema';
@@ -76,14 +77,22 @@ export default async function ChatPage(props: {
                 </div>
             </header>
 
-            {/* Chat Interface */}
+            {/* Chat Interface with right avatar aside */}
             <div className="flex-1 overflow-hidden">
-                <div className="container max-w-4xl mx-auto h-full flex flex-col py-4">
-                    <ChatInterface
-                        assistantId={assistantId}
-                        chatId={chatId as string}
-                        initialMessages={initialMessages}
-                    />
+                <div className="max-w-7xl mx-auto h-full flex gap-8 items-start py-4 px-4">
+                    <main className="flex-1 max-w-4xl">
+                        <ChatInterface
+                            assistantId={assistantId}
+                            chatId={chatId as string}
+                            initialMessages={initialMessages}
+                        />
+                    </main>
+
+                    <aside className="hidden lg:block w-80 sticky top-20 self-start">
+                        <div className="bg-white rounded-lg shadow p-4">
+                            <Avatar3DWrapper isSpeaking={false} />
+                        </div>
+                    </aside>
                 </div>
             </div>
         </div>

@@ -35,34 +35,23 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
 // URL local del modelo (CesiumMan como fallback robusto)
 const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 
-interface Avatar3DProps {
-    isSpeaking: boolean;
-    modelUrl?: string;
-}
-
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
     const { scene, animations } = useGLTF(modelUrl);
     const { actions } = useAnimations(animations, scene);
     const group = useRef<any>(null);
 
     useEffect(() => {
-        // Play the first animation found (usually Walk for CesiumMan)
-        // If we want Idle, we might need to stop it. 
-        // CesiumMan only has "animation_0" which is a walk.
-        // Let's play it slowly to simulate "alive".
         if (actions && animations.length > 0) {
             const action = actions[animations[0].name];
             if (action) {
                 action.reset().fadeIn(0.5).play();
-                action.timeScale = 0.5; // Slow walk
+                action.timeScale = 0.5;
             }
         }
     }, [actions, animations]);
 
     useFrame((state) => {
         if (!group.current) return;
-
-        // Simple "speaking" animation: bounce slightly
         if (isSpeaking) {
             group.current.scale.setScalar(2.1 + Math.sin(state.clock.elapsedTime * 10) * 0.05);
         } else {
@@ -83,21 +72,19 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
 
 export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     return (
-        <div className="w-full h-full">
+        <div className="w-full h-full min-h-[300px]">
             <Canvas className="bg-transparent" gl={{ alpha: true }} dpr={[1, 2]}>
-                <OrthographicCamera makeDefault position={[0, 0, 5]} zoom={150} />
+                <OrthographicCamera makeDefault position={[0, 1, 5]} zoom={80} />
 
-                <ambientLight intensity={0.5} />
-                <pointLight position={[10, 10, 10]} intensity={1} color="#ffffff" />
-                <pointLight position={[-10, 10, -5]} intensity={0.5} color="#blue" />
+                <ambientLight intensity={1} />
+                <directionalLight position={[5, 10, 5]} intensity={2} color="white" />
+                <pointLight position={[-10, 5, -5]} intensity={1} color="#4444ff" />
 
                 <AvatarErrorBoundary>
-                    <Float speed={2} rotationIntensity={0.2} floatIntensity={0.5}>
+                    <Float speed={2} rotationIntensity={0.1} floatIntensity={0.2}>
                         <AvatarModel isSpeaking={isSpeaking} />
                     </Float>
                 </AvatarErrorBoundary>
-
-                <Environment preset="city" />
             </Canvas>
         </div>
     );

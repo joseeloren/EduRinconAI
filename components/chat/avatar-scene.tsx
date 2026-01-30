@@ -8,6 +8,7 @@ import { AnimationClip, Object3D } from 'three';
 interface Avatar3DProps {
     isSpeaking: boolean;
     modelUrl?: string;
+    manualRotation?: { x: number; y: number; z: number };
 }
 
 /** Filtra las animaciones para incluir solo tracks cuyos nodos existen en la escena, evitando warnings de PropertyBinding */
@@ -55,7 +56,7 @@ class AvatarErrorBoundary extends Component<{ children: ReactNode }, { hasError:
 // URL local del modelo (usar modelo humano por defecto)
 const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 
-function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProps) {
+function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, manualRotation }: Avatar3DProps) {
     const { scene, animations, nodes } = useGLTF(modelUrl);
     const filteredAnimations = useMemo(
         () => (animations?.length ? filterAnimationsToMatchScene(animations, scene) : []),
@@ -87,10 +88,16 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         const rightHand = nodes.mixamorigRightHand || nodes.RightHand;
         const leftHand = nodes.mixamorigLeftHand || nodes.LeftHand;
 
-
-
-        // Gestures when speaking or Idle
-        if (isSpeaking) {
+        if (manualRotation) {
+            // DEBUG MODE: Apply manual Rotation
+            if (rightArm) {
+                // Apply manual rotation to right arm for testing
+                rightArm.rotation.x = manualRotation.x;
+                rightArm.rotation.y = manualRotation.y;
+                rightArm.rotation.z = manualRotation.z;
+            }
+            // Can extend to other bones if needed, but starting with RightArm as requested
+        } else if (isSpeaking) {
             /* ===========================
         SPEAKING – EXPLICANDO
         (como la imagen)
@@ -193,6 +200,12 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     const [models, setModels] = useState<Array<{ name: string; url: string }>>([]);
     const [selected, setSelected] = useState<string>(DEFAULT_AVATAR_URL);
 
+    // DEBUG STATE
+    const [showDebug, setShowDebug] = useState(false);
+    const [rotX, setRotX] = useState(0);
+    const [rotY, setRotY] = useState(0);
+    const [rotZ, setRotZ] = useState(-1.3); // Default roughly
+
     useEffect(() => {
         // Load saved selection from localStorage on mount
         try {
@@ -245,18 +258,47 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
         : [{ name: 'Humano (por defecto)', url: DEFAULT_AVATAR_URL }];
 
     return (
-        <div className="w-full h-full min-h-[400px] flex flex-col">
-            <div className="mb-2 flex items-center gap-3 pointer-events-auto relative z-20">
-                <label className="text-sm text-gray-600 font-medium">Modelo 3D:</label>
-                <select
-                    value={selected}
-                    onChange={onChange}
-                    className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                    {options.map((m) => (
-                        <option key={m.url} value={m.url}>{m.name}</option>
-                    ))}
-                </select>
+        <div className="w-full h-full min-h-[400px] flex flex-col relative">
+            <div className="mb-2 flex flex-col gap-2 pointer-events-auto relative z-20 bg-white/80 p-2 rounded">
+                <div className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600 font-medium">Modelo 3D:</label>
+                    <select
+                        value={selected}
+                        onChange={onChange}
+                        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        {options.map((m) => (
+                            <option key={m.url} value={m.url}>{m.name}</option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={() => setShowDebug(!showDebug)}
+                        className="text-xs px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+                    >
+                        {showDebug ? 'Hide Debug' : 'Debug'}
+                    </button>
+                </div>
+
+                {showDebug && (
+                    <div className="flex flex-col gap-1 p-2 bg-gray-100 rounded text-xs">
+                        <div className="font-bold">Brazo Derecho (Test)</div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-4">X:</span>
+                            <input type="range" min="-3.14" max="3.14" step="0.05" value={rotX} onChange={(e) => setRotX(parseFloat(e.target.value))} className="flex-1" />
+                            <span className="w-8 text-right">{rotX.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-4">Y:</span>
+                            <input type="range" min="-3.14" max="3.14" step="0.05" value={rotY} onChange={(e) => setRotY(parseFloat(e.target.value))} className="flex-1" />
+                            <span className="w-8 text-right">{rotY.toFixed(2)}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="w-4">Z:</span>
+                            <input type="range" min="-3.14" max="3.14" step="0.05" value={rotZ} onChange={(e) => setRotZ(parseFloat(e.target.value))} className="flex-1" />
+                            <span className="w-8 text-right">{rotZ.toFixed(2)}</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <Canvas className="flex-1 bg-transparent" camera={{ position: [0, 0.2, 5.5], fov: 45 }} gl={{ alpha: true }} dpr={[1, 2]}>
@@ -266,7 +308,11 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 <pointLight position={[-5, 5, -5]} intensity={2} color="#4444ff" />
 
                 <AvatarErrorBoundary>
-                    <AvatarModel isSpeaking={isSpeaking} modelUrl={selected} />
+                    <AvatarModel
+                        isSpeaking={isSpeaking}
+                        modelUrl={selected}
+                        manualRotation={showDebug ? { x: rotX, y: rotY, z: rotZ } : undefined}
+                    />
                 </AvatarErrorBoundary>
             </Canvas>
         </div>

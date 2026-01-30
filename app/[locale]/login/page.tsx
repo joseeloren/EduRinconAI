@@ -22,7 +22,9 @@ export default function LoginPage() {
         setError('');
         setLoading(true);
 
-        if (!captchaToken) {
+        const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true';
+
+        if (!captchaToken && !isDebugMode) {
             setError('Por favor, completa el captcha');
             setLoading(false);
             return;

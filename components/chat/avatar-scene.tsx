@@ -110,7 +110,7 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
             <primitive
                 object={scene}
                 position={[0, -1.6, 0]} // Stand on ground
-                rotation={[0, 0, 0]} // Face forward
+                rotation={[0, modelUrl.includes('Soldier.glb') ? Math.PI : 0, 0]} // Face forward (Soldier needs 180deg)
                 scale={1.5}
             />
         </group>

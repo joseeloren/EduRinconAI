@@ -63,8 +63,8 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         <group ref={group}>
             <primitive
                 object={scene}
-                position={[0, -2, 0]}
-                rotation={[0, Math.PI / 4, 0]}
+                position={[0, -0.9, 0]}
+                rotation={[0, Math.PI / 6, 0]}
             />
         </group>
     );

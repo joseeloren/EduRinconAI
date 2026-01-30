@@ -85,78 +85,72 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL }: Avatar3DProp
         const leftForeArm = nodes.mixamorigLeftForeArm || nodes.LeftForeArm;
         const head = nodes.mixamorigHead || nodes.Head;
 
+
+
         // Gestures when speaking or Idle
         if (isSpeaking) {
-            // Complex "Explaining" Gesture
-            const breathe = Math.sin(t * 1);
-            const emphasis = Math.sin(t * 4); // Fast wave
-            const wide = Math.sin(t * 0.5);   // Slow wave
+            // Mucho más calmado
+            const breathe = Math.sin(t * 0.6);   // respiración lenta
+            const emphasis = Math.sin(t * 2.0);   // énfasis moderado
+            const wide = Math.sin(t * 0.3);   // balanceo lento
 
             // RIGHT ARM
             if (rightArm) {
-                // Conversational/Lower: Arms closer to body (z: -1.45)
-                // Hands slightly above waist, not chest height (x: 0.2)
-                rightArm.rotation.z = -1.45 + breathe * 0.03;
-                rightArm.rotation.x = 0.2 + emphasis * 0.05 + wide * 0.05;
-                rightArm.rotation.y = -0.3 + wide * 0.2;
+                rightArm.rotation.z = -1.50 + breathe * 0.015;
+                rightArm.rotation.x = 0.15 + emphasis * 0.03 + wide * 0.02;
+                rightArm.rotation.y = -0.15 + wide * 0.10;
             }
             if (rightForeArm) {
-                // Elbow bent approx 90 degrees or slightly more open for "low conversation"
-                // -1.4 is slightly more open than -1.6
-                rightForeArm.rotation.x = -1.4 + emphasis * 0.05;
+                rightForeArm.rotation.x = -1.45 + emphasis * 0.03;
                 rightForeArm.rotation.y = 0;
                 rightForeArm.rotation.z = 0;
             }
 
             // LEFT ARM
             if (leftArm) {
-                leftArm.rotation.z = 1.45 - breathe * 0.03;
-                leftArm.rotation.x = 0.2 + emphasis * 0.05 + wide * 0.05;
-                leftArm.rotation.y = 0.3 - wide * 0.2;
+                leftArm.rotation.z = 1.50 - breathe * 0.015;
+                leftArm.rotation.x = 0.15 + emphasis * 0.03 + wide * 0.02;
+                leftArm.rotation.y = 0.15 - wide * 0.10;
             }
             if (leftForeArm) {
-                leftForeArm.rotation.x = -1.4 + emphasis * 0.05;
+                leftForeArm.rotation.x = -1.45 + emphasis * 0.03;
                 leftForeArm.rotation.y = 0;
                 leftForeArm.rotation.z = 0;
             }
 
-            // Head Emphasis
+            // Head (muy sutil)
             if (head) {
-                head.rotation.x = emphasis * 0.03;
-                head.rotation.y = Math.sin(t * 2) * 0.08;
+                head.rotation.x = emphasis * 0.015;
+                head.rotation.y = Math.sin(t * 1.2) * 0.04;
             }
         } else {
-            // RELAXED IDLE POSE (Procedural override to avoid T-Pose)
-            const breathe = Math.sin(t * 0.5) * 0.02; // Slow breathing
+            const breathe = Math.sin(t * 0.3) * 0.015;
 
             if (rightArm) {
-                // Arms down by side
-                rightArm.rotation.z = -1.55 + breathe;
-                rightArm.rotation.x = 0.05;
-                rightArm.rotation.y = -0.1;
+                rightArm.rotation.z = -1.57 + breathe;
+                rightArm.rotation.x = 0.03;
+                rightArm.rotation.y = -0.08;
             }
             if (rightForeArm) {
-                // Relaxed forearm (almost straight down)
-                rightForeArm.rotation.x = -0.1;
+                rightForeArm.rotation.x = -0.05;
                 rightForeArm.rotation.y = 0;
                 rightForeArm.rotation.z = 0;
             }
 
             if (leftArm) {
-                leftArm.rotation.z = 1.55 - breathe;
-                leftArm.rotation.x = 0.05;
-                leftArm.rotation.y = 0.1;
+                leftArm.rotation.z = 1.57 - breathe;
+                leftArm.rotation.x = 0.03;
+                leftArm.rotation.y = 0.08;
             }
             if (leftForeArm) {
-                leftForeArm.rotation.x = -0.1;
+                leftForeArm.rotation.x = -0.05;
                 leftForeArm.rotation.y = 0;
                 leftForeArm.rotation.z = 0;
             }
 
-            // Still head
             if (head) {
                 head.rotation.x = 0;
-                head.rotation.y = Math.sin(t * 0.5) * 0.05; // Very subtle look around
+                head.rotation.y = Math.sin(t * 0.25) * 0.03;
             }
         }
     });

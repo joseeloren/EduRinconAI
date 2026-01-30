@@ -23,6 +23,25 @@ interface Avatar3DProps {
 }
 
 // ... helper functions ...
+/** Filtra las animaciones para incluir solo tracks cuyos nodos existen en la escena, evitando warnings de PropertyBinding */
+function filterAnimationsToMatchScene(clips: AnimationClip[], scene: Object3D): AnimationClip[] {
+    const nodeNames = new Set<string>();
+    scene.traverse((obj) => {
+        if (obj.name) nodeNames.add(obj.name);
+    });
+
+    return clips
+        .map((clip) => {
+            const validTracks = clip.tracks.filter((track) => {
+                const path = track.name.split('.')[0];
+                const nodeName = path.includes('/') ? path.split('/').pop()! : path;
+                return nodeNames.has(nodeName);
+            });
+            if (validTracks.length === 0) return null;
+            return new AnimationClip(clip.name, clip.duration, validTracks);
+        })
+        .filter((c): c is AnimationClip => c !== null);
+}
 
 // URL local del modelo (usar modelo humano por defecto)
 const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';

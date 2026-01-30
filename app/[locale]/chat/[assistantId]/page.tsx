@@ -78,9 +78,9 @@ export default async function ChatPage(props: {
             </header>
 
             {/* Chat Interface with right avatar aside */}
-            <div className="flex-1 overflow-hidden">
-                <div className="max-w-7xl mx-auto h-full flex gap-8 items-start py-4 px-4">
-                    <main className="flex-1 max-w-4xl">
+            <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                <div className="max-w-7xl mx-auto flex-1 min-h-0 flex gap-8 items-stretch py-4 px-4">
+                    <main className="flex-1 min-h-0 max-w-4xl flex flex-col">
                         <ChatInterface
                             assistantId={assistantId}
                             chatId={chatId as string}
@@ -88,7 +88,7 @@ export default async function ChatPage(props: {
                         />
                     </main>
 
-                    <aside className="hidden lg:block w-80 sticky top-20 self-start">
+                    <aside className="hidden lg:block w-80 shrink-0 self-start">
                         <div className="bg-white rounded-lg shadow p-4">
                             <Avatar3DWrapper isSpeaking={false} />
                         </div>

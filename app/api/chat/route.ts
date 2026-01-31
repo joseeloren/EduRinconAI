@@ -51,12 +51,36 @@ export async function POST(request: Request) {
 
         if (contentType.includes('multipart/form-data')) {
             const formData = await request.formData();
+            const messagesJson = formData.get('messages') as string;
+            const chatMessages = JSON.parse(messagesJson);
+
+            // Extract actual files from formData
+            const lastMessage = chatMessages[chatMessages.length - 1];
+            if (lastMessage && lastMessage.role === 'user') {
+                const attachments: any[] = [];
+                // Vercel AI SDK sends files in fields like attachment_0, attachment_1...
+                for (const [key, value] of formData.entries()) {
+                    if (value instanceof File) {
+                        const buffer = await value.arrayBuffer();
+                        const base64 = Buffer.from(buffer).toString('base64');
+                        attachments.push({
+                            name: value.name,
+                            contentType: value.type,
+                            url: `data:${value.type};base64,${base64}`
+                        });
+                    }
+                }
+
+                if (attachments.length > 0) {
+                    lastMessage.experimental_attachments = attachments;
+                }
+            }
+
             body = {
-                messages: JSON.parse(formData.get('messages') as string),
+                messages: chatMessages,
                 chatId: formData.get('chatId') as string,
                 assistantId: formData.get('assistantId') as string,
             };
-            // Note: Attachments are already included in the messages JSON if sent by useChat
         } else {
             body = await request.json();
         }

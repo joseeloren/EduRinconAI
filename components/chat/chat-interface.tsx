@@ -6,7 +6,6 @@ import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 
-
 interface ChatInterfaceProps {
     assistantId: string;
     chatId?: string;

@@ -118,17 +118,9 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
 
         // Ensure it's playing
         if (!desiredAction.isRunning()) {
-            // Start unseen (weight 0) to play through the T-pose (first ~100ms)
-            desiredAction.reset().setEffectiveTimeScale(1).setEffectiveWeight(0).play();
-
-            // Fade in after 100ms (skipping the T-pose visually)
-            setTimeout(() => {
-                desiredAction.fadeIn(0.8);
-            }, 100);
-
+            desiredAction.reset().fadeIn(0.5).play();
         } else {
-            // Already running? Ensure it's fading back in
-            desiredAction.fadeIn(0.8).play();
+            desiredAction.fadeIn(0.5).play();
         }
 
         // Crossfade others out
@@ -136,7 +128,7 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
             if (key !== desiredActionName) {
                 const action = actions[key];
                 if (action && action.isRunning()) {
-                    action.fadeOut(0.8);
+                    action.fadeOut(0.5);
                 }
             }
         });

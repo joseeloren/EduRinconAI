@@ -48,6 +48,14 @@ export async function POST(request: Request) {
 
         const { messages: chatMessages, chatId, assistantId } = await request.json();
 
+        // 🔍 DEBUG: Inspect incoming messages structure
+        console.log('[Chat API] Received Request');
+        const lastMsg = chatMessages[chatMessages.length - 1];
+        if (lastMsg) {
+            console.log('[Chat API] Last Message Content:', JSON.stringify(lastMsg.content, null, 2));
+            console.log('[Chat API] Last Message Attachments:', JSON.stringify((lastMsg as any).experimental_attachments, null, 2));
+        }
+
         // Validate assistant access
         const [assistant] = await db
             .select()

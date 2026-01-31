@@ -3,46 +3,38 @@ import { db } from '@/db';
 import { assistants, chats, messages, assistantAccess } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { streamText } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
-import { Agent, fetch as undiciFetch } from 'undici';
+import { createOllama } from 'ollama-ai-provider';
 
-import { canAccessAssistant } from '@/lib/auth/roles';
-
-// Helper to ensure baseURL ends with /v1
+// Helper to ensure baseURL is correct for Ollama
 const getBaseURL = () => {
     let url = process.env.LLM_API_BASE_URL || 'http://localhost:11434';
-
-    // Trim whitespace and remove ALL trailing slashes
-    url = url.trim().replace(/\/+$/, '');
-
-    // Append /v1 if not present
-    if (!url.endsWith('/v1')) {
-        url = `${url}/v1`;
-    }
-
-    return url;
+    // Remove trailing slash and /v1 if present (native provider appends /api/chat)
+    return url.replace(/\/+$/, '').replace(/\/v1$/, '');
 };
 
 // Timeouts para Ollama: modelos grandes (ej. deepseek-r1:70b) pueden tardar mucho en cargar y responder
 const LLM_HEADERS_TIMEOUT_MS = parseInt(process.env.LLM_HEADERS_TIMEOUT_MS || '600000', 10); // 10 min
 const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '1200000', 10);     // 20 min
 
-const ollamaFetchAgent = new Agent({
-    connect: { timeout: 300000 }, // 5 min connect timeout
-    headersTimeout: LLM_HEADERS_TIMEOUT_MS,
-    bodyTimeout: LLM_BODY_TIMEOUT_MS,
-});
+// Configure Native Ollama provider (bypasses OpenAI compatibility layer)
+const ollama = createOllama({
+    baseURL: getBaseURL() + '/api', // ollama-ai-provider expects base URL (often with /api)
+    fetch: (input, init) => {
+        // Custom fetch payload to support extended timeouts
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), LLM_BODY_TIMEOUT_MS);
 
-// Wrapper para usar undici con timeouts ampliados (compatible con tipos del AI SDK)
-const ollamaFetch = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    return undiciFetch(input as any, { ...init, dispatcher: ollamaFetchAgent } as any) as unknown as Promise<Response>;
-};
-
-// Configure OpenAI provider for Ollama/LocalAI
-const ollama = createOpenAI({
-    baseURL: getBaseURL(),
-    apiKey: process.env.LLM_API_KEY || 'ollama',
-    fetch: ollamaFetch,
+        return undiciFetch(input as any, {
+            ...init,
+            dispatcher: new Agent({
+                headersTimeout: LLM_HEADERS_TIMEOUT_MS,
+                bodyTimeout: LLM_BODY_TIMEOUT_MS,
+                connect: { timeout: 300000 }
+            }) as any,
+            signal: controller.signal
+        } as any)
+            .finally(() => clearTimeout(timeoutId)) as unknown as Promise<Response>;
+    }
 });
 
 export async function POST(request: Request) {

@@ -130,7 +130,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             if (lastReadMessageId.current !== lastAssistantMessage.id) {
                 lastReadMessageId.current = lastAssistantMessage.id;
                 // Add a small delay to ensure page interaction/focus allows audio
-                setTimeout(() => playAudio(lastAssistantMessage.content), 500);
+                setTimeout(() => playAudio(lastAssistantMessage.content), 1500);
             }
             return;
         }

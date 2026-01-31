@@ -386,7 +386,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                 </div>
 
                 <form
-                    onSubmit={(event) => {
+                    onSubmit={async (event) => {
                         event.preventDefault();
                         const attachments = files ? Array.from(files) : [];
 
@@ -397,12 +397,27 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
 
                         console.log('[Chat Client] Submitting form. Attachments length:', attachments.length);
 
-                        handleSubmit(event, {
-                            experimental_attachments: attachments as any
-                        });
-                        console.log('[Chat Client] handleSubmit called with attachments');
+                        // Convert files to Base64 to ensure they are sent correctly in the JSON payload
+                        const attachmentsData = await Promise.all(
+                            attachments.map(async (file) => {
+                                return new Promise<any>((resolve) => {
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => resolve({
+                                        name: file.name,
+                                        contentType: file.type,
+                                        url: reader.result as string
+                                    });
+                                    reader.readAsDataURL(file);
+                                });
+                            })
+                        );
 
-                        setFiles(undefined); // Clear files after send
+                        handleSubmit(event, {
+                            experimental_attachments: attachmentsData
+                        });
+                        console.log('[Chat Client] handleSubmit called with Base64 attachments');
+
+                        setFiles(undefined);
                         if (fileInputRef.current) fileInputRef.current.value = '';
                     }}
                     className="flex gap-2"

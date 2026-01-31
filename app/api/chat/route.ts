@@ -93,6 +93,17 @@ export async function POST(request: Request) {
 
         const { messages: chatMessages, chatId, assistantId } = body;
 
+        // DEBUG: Examine incoming message structure
+        const lastMsg = chatMessages[chatMessages.length - 1];
+        if (lastMsg?.experimental_attachments) {
+            console.log('[Chat API] Incoming attachments details:', JSON.stringify(lastMsg.experimental_attachments.map((a: any) => ({
+                name: a.name,
+                type: a.contentType,
+                hasUrl: !!a.url,
+                urlPreview: typeof a.url === 'string' ? a.url.substring(0, 30) + '...' : typeof a.url
+            })), null, 2));
+        }
+
         // 1. Fetch Assistant first
         const [assistant] = await db
             .select()

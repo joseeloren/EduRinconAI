@@ -388,16 +388,13 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                 <form
                     onSubmit={(event) => {
                         event.preventDefault();
-                        console.log('[Chat Client] Submitting form. Files:', files);
-                        if (files) {
-                            console.log('[Chat Client] Files length:', files.length);
-                            console.log('[Chat Client] First file:', files[0]?.name, files[0]?.type);
-                        }
+                        const attachments = files ? Array.from(files) : [];
+                        console.log('[Chat Client] Submitting form. Attachments length:', attachments.length);
 
                         handleSubmit(event, {
-                            experimental_attachments: files as any // Cast for TS compatibility if needed
+                            experimental_attachments: attachments as any
                         });
-                        console.log('[Chat Client] handleSubmit called');
+                        console.log('[Chat Client] handleSubmit called with attachments');
 
                         setFiles(undefined); // Clear files after send
                         if (fileInputRef.current) fileInputRef.current.value = '';

@@ -113,12 +113,17 @@ export async function POST(request: Request) {
                         content: [
                             { type: 'text', text: textContent || 'Analiza esta imagen.' },
                             ...msg.experimental_attachments.map((att: any) => {
-                                // Extract Buffer if it's a data URL for better reliability
+                                // Extract Uint8Array if it's a data URL for better reliability
                                 if (typeof att.url === 'string' && att.url.startsWith('data:')) {
                                     const base64Content = att.url.split(',')[1];
+                                    const binaryString = atob(base64Content);
+                                    const bytes = new Uint8Array(binaryString.length);
+                                    for (let i = 0; i < binaryString.length; i++) {
+                                        bytes[i] = binaryString.charCodeAt(i);
+                                    }
                                     return {
                                         type: 'image',
-                                        image: Buffer.from(base64Content, 'base64'),
+                                        image: bytes,
                                         mimeType: att.contentType || 'image/jpeg'
                                     };
                                 }
@@ -131,9 +136,19 @@ export async function POST(request: Request) {
                     };
                 }
 
+                // Ensure assistant content is always a string and not multi-part for now
+                let normalContent = '';
+                if (typeof msg.content === 'string') {
+                    normalContent = msg.content;
+                } else if (Array.isArray(msg.content)) {
+                    normalContent = msg.content.find((p: any) => p.type === 'text')?.text || '';
+                } else {
+                    normalContent = String(msg.content || '');
+                }
+
                 return {
                     role: msg.role,
-                    content: typeof msg.content === 'string' ? msg.content : (msg.content?.text || String(msg.content)),
+                    content: normalContent,
                 };
             });
 
@@ -218,14 +233,6 @@ export async function POST(request: Request) {
 
         // Process chat for pure LLM response (No RAG)
 
-        // Build messages with system prompt
-        const systemMessage = {
-            role: 'system' as const,
-            content: assistant.systemPrompt,
-        };
-
-        const allMessages = [systemMessage, ...formattedMessages];
-
         // Save last user message (we save only the text part to the DB)
         const lastUserMessage = chatMessages.filter((m: any) => m.role === 'user').pop();
         if (lastUserMessage) {
@@ -243,13 +250,14 @@ export async function POST(request: Request) {
 
         // Stream response
         const modelName = process.env.LLM_MODEL_NAME || 'llama3.2';
-        console.log(`[Chat API] Starting stream with model: ${modelName}. Total messages: ${allMessages.length}`);
+        console.log(`[Chat API] Starting stream with model: ${modelName}. Total messages: ${formattedMessages.length}`);
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
         try {
             const result = await streamText({
                 model: ollama(modelName) as any, // Cast to any to bypass version mismatch
-                messages: allMessages,
+                system: assistant.systemPrompt || '',
+                messages: formattedMessages as any,
                 temperature: (assistant.temperature || 70) / 100,
                 maxTokens: 2000,
                 // Add explicit error handling for the stream

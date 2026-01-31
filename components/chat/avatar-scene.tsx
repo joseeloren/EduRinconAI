@@ -43,7 +43,7 @@ const TALKING_FILES = [
 ].map(f => `/animations/${f}`);
 
 // Helper to manually trim start of animation (remove T-pose)
-function trimClip(clip: AnimationClip, timeToRemove: number = 0.33) { // Increased to 0.33s (~10 frames)
+function trimClip(clip: AnimationClip, timeToRemove: number = 0.6) { // Increased to 0.6s (~18 frames)
     if (clip.duration <= timeToRemove) return clip; // Don't trim if too short
 
     clip.tracks.forEach(track => {

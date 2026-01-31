@@ -93,7 +93,42 @@ export async function POST(request: Request) {
 
         const { messages: chatMessages, chatId, assistantId } = body;
 
-        // 1. Normalize messages to strictly follow CoreMessage structure
+        // 1. Fetch Assistant first
+        const [assistant] = await db
+            .select()
+            .from(assistants)
+            .where(eq(assistants.id, assistantId))
+            .limit(1);
+
+        if (!assistant) {
+            return new Response('Assistant not found', { status: 404 });
+        }
+
+        // 2. Validate assistant access
+        const [access] = await db
+            .select()
+            .from(assistantAccess)
+            .where(
+                and(
+                    eq(assistantAccess.assistantId, assistantId),
+                    eq(assistantAccess.userId, session.user.id)
+                )
+            )
+            .limit(1);
+
+        const hasAccess = canAccessAssistant(
+            session.user.role,
+            session.user.id,
+            assistant.createdById,
+            !!access,
+            assistant.isPublic === 1
+        );
+
+        if (!hasAccess) {
+            return new Response('Forbidden: No access to this assistant', { status: 403 });
+        }
+
+        // 3. Normalize messages to strictly follow CoreMessage structure
         const formattedMessages = chatMessages
             .filter((msg: any) => ['user', 'assistant'].includes(msg.role))
             .map((msg: any) => {
@@ -129,7 +164,6 @@ export async function POST(request: Request) {
                     };
                 }
 
-                // Normal message
                 let normalContent = '';
                 if (typeof msg.content === 'string') {
                     normalContent = msg.content;

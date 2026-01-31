@@ -30,14 +30,16 @@ const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 const IDLE_FILES = [
     'M_Standing_Idle_001.glb',
     'M_Standing_Idle_002.glb',
-    // Variations
-    ...Array.from({ length: 10 }, (_, i) => `M_Standing_Idle_Variations_00${i + 1}.glb`.replace('0010', '010')),
-    // Expressions (Good for idle variety)
-    ...Array.from({ length: 18 }, (_, i) => `M_Standing_Expressions_00${i + 1}.glb`.replace('0010', '010').replace('0011', '011').replace('0012', '012').replace('0013', '013').replace('0014', '014').replace('0015', '015').replace('0016', '016').replace('0017', '017').replace('0018', '018'))
+    // Variations (001-010)
+    ...Array.from({ length: 10 }, (_, i) => `M_Standing_Idle_Variations_${String(i + 1).padStart(3, '0')}.glb`),
+    // Expressions (001-018, skipping 003 which is missing)
+    ...Array.from({ length: 18 }, (_, i) => i + 1)
+        .filter(n => n !== 3)
+        .map(n => `M_Standing_Expressions_${String(n).padStart(3, '0')}.glb`)
 ].map(f => `/animations/${f}`);
 
 const TALKING_FILES = [
-    ...Array.from({ length: 10 }, (_, i) => `M_Talking_Variations_00${i + 1}.glb`.replace('0010', '010'))
+    ...Array.from({ length: 10 }, (_, i) => `M_Talking_Variations_${String(i + 1).padStart(3, '0')}.glb`)
 ].map(f => `/animations/${f}`);
 
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: Avatar3DProps) {

@@ -96,149 +96,168 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
 
         if (!isNewMessage && !isWelcomeMessage) {
             // It's page load, and it's NOT a welcome message -> It's just history. Don't speak.
-            mountedRef.current = true;
-            return;
-        }
+            // Helper to play audio
+            const playAudio = (text: string) => {
+                if (!synthRef.current || voices.length === 0) return;
 
-        mountedRef.current = true;
+                synthRef.current.cancel();
 
-        // Stop previous
-        synthRef.current.cancel();
+                const cleanText = text.replace(/[*#_`]/g, '');
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'es-ES';
 
-        // Speak
-        const cleanText = lastAssistantMessage.content.replace(/[*#_`]/g, '');
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'es-ES';
+                // Select best voice (Google > Microsoft > default)
+                const preferredVoice = voices.find(v => v.lang.includes('es') && v.name.includes('Google')) ||
+                    voices.find(v => v.lang.includes('es') && v.name.includes('Microsoft')) ||
+                    voices.find(v => v.lang.includes('es'));
 
-        // Select best voice (Google > Microsoft > default)
-        const preferredVoice = voices.find(v => v.lang.includes('es') && v.name.includes('Google')) ||
-            voices.find(v => v.lang.includes('es') && v.name.includes('Microsoft')) ||
-            voices.find(v => v.lang.includes('es'));
+                if (preferredVoice) utterance.voice = preferredVoice;
 
-        if (preferredVoice) utterance.voice = preferredVoice;
+                utterance.onstart = () => {
+                    setIsSpeaking(true);
+                    onSpeakingChange?.(true);
+                };
+                utterance.onend = () => {
+                    setIsSpeaking(false);
+                    onSpeakingChange?.(false);
+                };
+                utterance.onerror = (e) => {
+                    console.error('TTS Error:', e);
+                    setIsSpeaking(false);
+                    onSpeakingChange?.(false);
+                };
 
-        utterance.onstart = () => {
-            setIsSpeaking(true);
-            onSpeakingChange?.(true);
-        };
-        utterance.onend = () => {
-            setIsSpeaking(false);
-            onSpeakingChange?.(false);
-        };
-        utterance.onerror = () => {
-            setIsSpeaking(false);
-            onSpeakingChange?.(false);
-        };
+                synthRef.current.speak(utterance);
+            };
 
-        synthRef.current.speak(utterance);
-    }, [lastAssistantMessage, onSpeakingChange, voices]);
+            // Handle TTS when new message arrives
+            useEffect(() => {
+                if (!lastAssistantMessage || !synthRef.current || voices.length === 0) return;
 
-    // Scroll to bottom on new message
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
+                // Logic to prevent reading old history on page load, 
+                // BUT allow reading the "Welcome Message" (which is technically history/initial).
+                const isWelcomeMessage = lastAssistantMessage.id === 'welcome-message';
+                const isNewMessage = mountedRef.current; // If we are already mounted, any change is a new message
 
-    return (
-        <div className="flex flex-col flex-1 min-h-0">
+                if (!isNewMessage && !isWelcomeMessage) {
+                    // It's page load, and it's NOT a welcome message -> It's just history. Don't speak.
+                    mountedRef.current = true;
+                    return;
+                }
 
-            {/* We still need the logic to drive TTS, can reuse TalkingAvatar logic or extract it. 
+                mountedRef.current = true;
+
+                // Auto-play
+                playAudio(lastAssistantMessage.content);
+
+            }, [lastAssistantMessage, onSpeakingChange, voices]);
+
+            // Scroll to bottom on new message
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages]);
+
+            return (
+                <div className="flex flex-col flex-1 min-h-0">
+
+                    {/* We still need the logic to drive TTS, can reuse TalkingAvatar logic or extract it. 
                 For now, let's keep it simple: we need to pass 'isSpeaking' state from the TTS engine.
             */}
 
 
-            {/* Messages Container */}
-            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
-                {messages.length === 0 && (
-                    <div className="text-center text-gray-500 mt-8">
-                        <p className="text-lg">{t('welcome')}</p>
-                        <p className="text-sm mt-2">{t('instructions')}</p>
-                    </div>
-                )}
-
-                {messages.map((message) => (
-                    <div
-                        key={message.id}
-                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                    >
-                        <div
-                            className={`max-w-[90%] rounded-lg px-4 py-2 ${message.role === 'user'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-900'
-                                }`}
-                        >
-                            <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed">
-                                <MarkdownRenderer content={message.content} />
+                    {/* Messages Container */}
+                    <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+                        {messages.length === 0 && (
+                            <div className="text-center text-gray-500 mt-8">
+                                <p className="text-lg">{t('welcome')}</p>
+                                <p className="text-sm mt-2">{t('instructions')}</p>
                             </div>
+                        )}
 
-                            {/* Show sources if available */}
-                            {message.role === 'assistant' && (message as any).sources && (
-                                <div className="mt-2 pt-2 border-t border-gray-300">
-                                    <p className="text-xs font-semibold mb-1 flex items-center gap-1">
-                                        <FileText className="w-3 h-3" />
-                                        {t('sources')}
-                                    </p>
-                                    <ul className="text-xs space-y-1">
-                                        {(message as any).sources.map((source: any, idx: number) => (
-                                            <li key={idx} className="truncate">
-                                                • {source.documentName} ({Math.round(source.similarity * 100)}%)
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                ))}
-
-                {isLoading && (
-                    <div className="flex justify-start">
-                        <div className="bg-gray-100 rounded-lg px-4 py-2">
-                            <div className="flex space-x-2">
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
-                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {errorMsg && (
-                    <div className="flex justify-center my-4">
-                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative max-w-[90%] text-sm" role="alert">
-                            <strong className="font-bold block mb-1">Error:</strong>
-                            <span className="block sm:inline">{errorMsg}</span>
-                            <button
-                                className="absolute top-0 bottom-0 right-0 px-4 py-3"
-                                onClick={() => setErrorMsg(null)}
+                        {messages.map((message) => (
+                            <div
+                                key={message.id}
+                                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                             >
-                                <span className="fill-current h-6 w-6 text-red-500 font-bold">×</span>
-                            </button>
-                        </div>
+                                <div
+                                    className={`max-w-[90%] rounded-lg px-4 py-2 ${message.role === 'user'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-100 text-gray-900'
+                                        }`}
+                                >
+                                    <div className="prose dark:prose-invert max-w-none text-sm leading-relaxed">
+                                        <MarkdownRenderer content={message.content} />
+                                    </div>
+
+                                    {/* Show sources if available */}
+                                    {message.role === 'assistant' && (message as any).sources && (
+                                        <div className="mt-2 pt-2 border-t border-gray-300">
+                                            <p className="text-xs font-semibold mb-1 flex items-center gap-1">
+                                                <FileText className="w-3 h-3" />
+                                                {t('sources')}
+                                            </p>
+                                            <ul className="text-xs space-y-1">
+                                                {(message as any).sources.map((source: any, idx: number) => (
+                                                    <li key={idx} className="truncate">
+                                                        • {source.documentName} ({Math.round(source.similarity * 100)}%)
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+
+                        {isLoading && (
+                            <div className="flex justify-start">
+                                <div className="bg-gray-100 rounded-lg px-4 py-2">
+                                    <div className="flex space-x-2">
+                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
+                                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {errorMsg && (
+                            <div className="flex justify-center my-4">
+                                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative max-w-[90%] text-sm" role="alert">
+                                    <strong className="font-bold block mb-1">Error:</strong>
+                                    <span className="block sm:inline">{errorMsg}</span>
+                                    <button
+                                        className="absolute top-0 bottom-0 right-0 px-4 py-3"
+                                        onClick={() => setErrorMsg(null)}
+                                    >
+                                        <span className="fill-current h-6 w-6 text-red-500 font-bold">×</span>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div ref={messagesEndRef} />
                     </div>
-                )}
 
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Form */}
-            <div className="border-t border-gray-200 p-4 bg-white">
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                    <input
-                        value={input}
-                        onChange={handleInputChange}
-                        placeholder={t('placeholder')}
-                        disabled={isLoading}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-                    />
-                    <button
-                        type="submit"
-                        disabled={isLoading || !input.trim()}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <Send className="w-4 h-4" />
-                    </button>
-                </form>
-            </div>
-        </div>
-    );
-}
+                    {/* Input Form */}
+                    <div className="border-t border-gray-200 p-4 bg-white">
+                        <form onSubmit={handleSubmit} className="flex gap-2">
+                            <input
+                                value={input}
+                                onChange={handleInputChange}
+                                placeholder={t('placeholder')}
+                                disabled={isLoading}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                            />
+                            <button
+                                type="submit"
+                                disabled={isLoading || !input.trim()}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                <Send className="w-4 h-4" />
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            );
+        }

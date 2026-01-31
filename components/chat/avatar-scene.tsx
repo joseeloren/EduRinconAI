@@ -118,12 +118,16 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
 
         // Ensure it's playing
         if (!desiredAction.isRunning()) {
-            // Ensure the new action starts fresh with 0 weight, then fades in
-            const action = desiredAction.reset().setEffectiveTimeScale(1).setEffectiveWeight(0).fadeIn(0.8).play();
-            // Skip first 0.1s to avoid T-pose
-            action.time = 0.1;
+            // Start unseen (weight 0) to play through the T-pose (first ~100ms)
+            desiredAction.reset().setEffectiveTimeScale(1).setEffectiveWeight(0).play();
+
+            // Fade in after 100ms (skipping the T-pose visually)
+            setTimeout(() => {
+                desiredAction.fadeIn(0.8);
+            }, 100);
+
         } else {
-            // Already running but maybe fading out? Ensure it's fading back in
+            // Already running? Ensure it's fading back in
             desiredAction.fadeIn(0.8).play();
         }
 

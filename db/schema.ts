@@ -56,6 +56,7 @@ export const assistants = pgTable('assistants', {
     createdById: uuid('created_by_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
     isPublic: integer('is_public').default(0).notNull(), // 0 = private, 1 = public
     temperature: integer('temperature').default(70).notNull(), // 0-100 for UI, divide by 100 for API
+    model: varchar('model', { length: 255 }).default('llama3.2').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

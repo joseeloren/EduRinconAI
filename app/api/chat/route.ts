@@ -93,10 +93,9 @@ export async function POST(request: Request) {
 
         const { messages: chatMessages, chatId, assistantId } = body;
 
-        // Map messages to strictly follow CoreMessage structure
-        // This removes extra properties and handles multi-part content for images correctly.
+        // 1. Normalize messages to strictly follow CoreMessage structure
         const formattedMessages = chatMessages
-            .filter((msg: any) => ['user', 'assistant'].includes(msg.role)) // Exclude client-side system messages
+            .filter((msg: any) => ['user', 'assistant'].includes(msg.role))
             .map((msg: any) => {
                 const hasAttachments = msg.role === 'user' && msg.experimental_attachments && msg.experimental_attachments.length > 0;
 
@@ -113,17 +112,11 @@ export async function POST(request: Request) {
                         content: [
                             { type: 'text', text: textContent || 'Analiza esta imagen.' },
                             ...msg.experimental_attachments.map((att: any) => {
-                                // Extract Uint8Array if it's a data URL for better reliability
                                 if (typeof att.url === 'string' && att.url.startsWith('data:')) {
                                     const base64Content = att.url.split(',')[1];
-                                    const binaryString = atob(base64Content);
-                                    const bytes = new Uint8Array(binaryString.length);
-                                    for (let i = 0; i < binaryString.length; i++) {
-                                        bytes[i] = binaryString.charCodeAt(i);
-                                    }
                                     return {
                                         type: 'image',
-                                        image: bytes,
+                                        image: Buffer.from(base64Content, 'base64'),
                                         mimeType: att.contentType || 'image/jpeg'
                                     };
                                 }
@@ -136,7 +129,7 @@ export async function POST(request: Request) {
                     };
                 }
 
-                // Ensure assistant content is always a string and not multi-part for now
+                // Normal message
                 let normalContent = '';
                 if (typeof msg.content === 'string') {
                     normalContent = msg.content;
@@ -152,11 +145,18 @@ export async function POST(request: Request) {
                 };
             });
 
-        // 🔍 DEBUG: Final check of the messages array structure (no values, just types)
-        console.log('[Chat API] Messages ready for stream:', JSON.stringify(formattedMessages.map((m: any) => ({
+        // 2. Prepend System Prompt (Back inside messages for maximum compatibility)
+        const allMessages = [
+            { role: 'system', content: assistant.systemPrompt || 'Eres un tutor AI.' },
+            ...formattedMessages
+        ];
+
+        // 🔍 DEBUG: Log the ENTIRE thing if it's not too huge, or a very clear summary
+        console.log('[Chat API] Final Messages to streamText:', JSON.stringify(allMessages.map(m => ({
             role: m.role,
+            contentIsArray: Array.isArray(m.content),
             contentType: typeof m.content,
-            parts: Array.isArray(m.content) ? m.content.map((p: any) => p.type) : undefined
+            contentLength: typeof m.content === 'string' ? m.content.length : m.content.length
         })), null, 2));
 
         // Validate assistant access
@@ -218,17 +218,6 @@ export async function POST(request: Request) {
                     title: chatMessages[0]?.content?.slice(0, 50) || 'New Chat',
                 })
                 .returning();
-
-            // SÍ hay un mensaje de bienvenida (role='assistant') al principio, lo guardamos explícitamente
-            // para que persista en el historial (si no, desaparece al recargar).
-            const firstMsg = chatMessages[0];
-            if (firstMsg && firstMsg.role === 'assistant') {
-                await db.insert(messages).values({
-                    chatId: chat.id,
-                    role: 'assistant',
-                    content: firstMsg.content,
-                });
-            }
         }
 
         // Process chat for pure LLM response (No RAG)
@@ -236,28 +225,22 @@ export async function POST(request: Request) {
         // Save last user message (we save only the text part to the DB)
         const lastUserMessage = chatMessages.filter((m: any) => m.role === 'user').pop();
         if (lastUserMessage) {
-            await db.insert(messages).values({
-                chatId: chat.id,
-                role: 'user',
-                content: typeof lastUserMessage.content === 'string'
-                    ? lastUserMessage.content
-                    : (Array.isArray(lastUserMessage.content)
-                        ? lastUserMessage.content.find((p: any) => p.type === 'text')?.text || ''
-                        : ''),
-            });
+            let dbContent = '';
+            if (typeof lastUserMessage.content === 'string') dbContent = lastUserMessage.content;
+            else if (Array.isArray(lastUserMessage.content)) dbContent = lastUserMessage.content.find((p: any) => p.type === 'text')?.text || '';
+            await db.insert(messages).values({ chatId: chat.id, role: 'user', content: dbContent });
         }
 
 
         // Stream response
         const modelName = process.env.LLM_MODEL_NAME || 'llama3.2';
-        console.log(`[Chat API] Starting stream with model: ${modelName}. Total messages: ${formattedMessages.length}`);
+        console.log(`[Chat API] Starting stream with model: ${modelName}. Messages count: ${allMessages.length}`);
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
         try {
             const result = await streamText({
                 model: ollama(modelName) as any, // Cast to any to bypass version mismatch
-                system: assistant.systemPrompt || '',
-                messages: formattedMessages as any,
+                messages: allMessages as any,
                 temperature: (assistant.temperature || 70) / 100,
                 maxTokens: 2000,
                 // Add explicit error handling for the stream
@@ -278,8 +261,9 @@ export async function POST(request: Request) {
 
             return result.toDataStreamResponse();
         } catch (streamError) {
-            console.error('[Chat API] Stream creation failed:', streamError);
-            throw streamError; // Re-throw to be caught by outer try-catch
+            console.error('[Chat API] CRITICAL error in streamText:', streamError);
+            console.error('[Chat API] Full messages payload causing error:', JSON.stringify(allMessages, (h, v) => (v instanceof Buffer || v instanceof Uint8Array) ? '<BINARY_DATA>' : v, 2));
+            throw streamError;
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

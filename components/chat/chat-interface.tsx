@@ -82,11 +82,18 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         const utterance = new SpeechSynthesisUtterance(cleanText);
 
         const langTag = locale === 'en' ? 'en-US' : 'es-ES';
-        utterance.lang = langTag;
+        // Select best voice matching the locale
+        let preferredVoice;
 
-        const preferredVoice = voices.find(v => v.lang.includes(locale) && v.name.includes('Google')) ||
-            voices.find(v => v.lang.includes(locale) && v.name.includes('Microsoft')) ||
-            voices.find(v => v.lang.includes(locale));
+        if (locale === 'en') {
+            // Prefer Male voices for English (Microsoft David, Mark, or Explicit 'Male')
+            preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('David') || v.name.includes('Mark') || v.name.includes('Male'))) ||
+                voices.find(v => v.lang.includes('en'));
+        } else {
+            preferredVoice = voices.find(v => v.lang.includes(locale) && v.name.includes('Google')) ||
+                voices.find(v => v.lang.includes(locale) && v.name.includes('Microsoft')) ||
+                voices.find(v => v.lang.includes(locale));
+        }
 
         if (preferredVoice) utterance.voice = preferredVoice;
 

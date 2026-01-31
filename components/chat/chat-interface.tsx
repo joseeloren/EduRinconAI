@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from 'ai/react';
-import { Send, FileText, Volume2 } from 'lucide-react';
+import { Send, FileText, Volume2, Mic, MicOff } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -54,6 +54,10 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
     const mountedRef = useRef(false);
     const [audioBlocked, setAudioBlocked] = useState(false);
 
+    // STT State
+    const [isListening, setIsListening] = useState(false);
+    const recognitionRef = useRef<any>(null);
+
     // Initialize SpeechSynthesis
     useEffect(() => {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -70,6 +74,41 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             };
         }
     }, []);
+
+    const toggleListening = () => {
+        if (isListening) {
+            recognitionRef.current?.stop();
+            setIsListening(false);
+            return;
+        }
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SpeechRecognition) {
+            alert(t('browserNotSupported') || "Tu navegador no soporta entrada de voz.");
+            return;
+        }
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = locale === 'en' ? 'en-US' : 'es-ES';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => setIsListening(true);
+        recognition.onend = () => setIsListening(false);
+        recognition.onerror = (event: any) => {
+            console.error("Speech recognition error", event.error);
+            setIsListening(false);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            const newValue = input ? input + ' ' + transcript : transcript;
+            handleInputChange({ target: { value: newValue } } as any);
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+    };
 
     // Helper to play audio (DEFINED AFTER HOOKS)
     const playAudio = (text: string) => {
@@ -276,10 +315,20 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             {/* Input Form */}
             <div className="border-t border-gray-200 p-4 bg-white">
                 <form onSubmit={handleSubmit} className="flex gap-2">
+                    <button
+                        type="button"
+                        onClick={toggleListening}
+                        className={`p-2 rounded-full transition-all ${isListening
+                            ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400'
+                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                        title={isListening ? "Detener" : "Dictar"}
+                    >
+                        {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                    </button>
                     <input
                         value={input}
                         onChange={handleInputChange}
-                        placeholder={t('placeholder')}
+                        placeholder={isListening ? (locale === 'en' ? 'Listening...' : 'Escuchando...') : t('placeholder')}
                         disabled={isLoading}
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
                     />

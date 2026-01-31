@@ -50,27 +50,24 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
     const idleGLTFs = useGLTF(IDLE_FILES) as any[];
     const talkingGLTFs = useGLTF(TALKING_FILES) as any[];
 
-    // Extract and rename clips to be unique + TRIM T-POSE
+    // Extract and rename clips to be unique
     const idleClips = useMemo(() => {
         return idleGLTFs.flatMap((gltf, i) => {
             const clips = gltf.animations || [];
-            return clips.map((clip: AnimationClip) => {
-                // Trim first 5 frames to avoid T-pose/Arms-down flicker
-                // subclip(source, name, startFrame, endFrame, fps)
-                const trimmed = AnimationUtils.subclip(clip, `Idle_${i}`, 5, 99999, 30);
-                return trimmed;
+            clips.forEach((clip: AnimationClip) => {
+                clip.name = `Idle_${i}`;
             });
+            return clips;
         });
     }, [idleGLTFs]);
 
     const talkingClips = useMemo(() => {
         return talkingGLTFs.flatMap((gltf, i) => {
             const clips = gltf.animations || [];
-            return clips.map((clip: AnimationClip) => {
-                // Trim first 5 frames
-                const trimmed = AnimationUtils.subclip(clip, `Talking_${i}`, 5, 99999, 30);
-                return trimmed;
+            clips.forEach((clip: AnimationClip) => {
+                clip.name = `Talking_${i}`;
             });
+            return clips;
         });
     }, [talkingGLTFs]);
 
@@ -122,7 +119,9 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         // Ensure it's playing
         if (!desiredAction.isRunning()) {
             // Ensure the new action starts fresh with 0 weight, then fades in
-            desiredAction.reset().setEffectiveTimeScale(1).setEffectiveWeight(0).fadeIn(0.8).play();
+            const action = desiredAction.reset().setEffectiveTimeScale(1).setEffectiveWeight(0).fadeIn(0.8).play();
+            // Skip first 0.1s to avoid T-pose
+            action.time = 0.1;
         } else {
             // Already running but maybe fading out? Ensure it's fading back in
             desiredAction.fadeIn(0.8).play();

@@ -6,7 +6,16 @@ import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
 
-// ... interface ...
+interface ChatInterfaceProps {
+    assistantId: string;
+    chatId?: string;
+    initialMessages?: Array<{
+        id: string;
+        role: 'user' | 'assistant' | 'system';
+        content: string;
+    }>;
+    onSpeakingChange?: (isSpeaking: boolean) => void;
+}
 
 export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange }: ChatInterfaceProps) {
     const t = useTranslations('chat');

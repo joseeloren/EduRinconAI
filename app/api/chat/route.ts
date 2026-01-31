@@ -94,36 +94,55 @@ export async function POST(request: Request) {
         const { messages: chatMessages, chatId, assistantId } = body;
 
         // Map messages to strictly follow CoreMessage structure
-        // This removes extra properties like 'id' and 'createdAt' which cause validation errors
-        // and handles multi-part content for images.
-        const formattedMessages = chatMessages.map((msg: any) => {
-            const cleanMsg: any = {
-                role: msg.role,
-                content: msg.content || '',
-            };
+        // This removes extra properties and handles multi-part content for images correctly.
+        const formattedMessages = chatMessages
+            .filter((msg: any) => ['user', 'assistant'].includes(msg.role)) // Exclude client-side system messages
+            .map((msg: any) => {
+                const hasAttachments = msg.role === 'user' && msg.experimental_attachments && msg.experimental_attachments.length > 0;
 
-            if (msg.role === 'user' && msg.experimental_attachments && msg.experimental_attachments.length > 0) {
-                console.log(`[Chat API] Formatting msg with ${msg.experimental_attachments.length} attachments`);
-                cleanMsg.content = [
-                    { type: 'text', text: msg.content || '' },
-                    ...msg.experimental_attachments.map((att: any) => ({
-                        type: 'image',
-                        image: att.url // Base64 Data URL
-                    }))
-                ];
-            }
-            return cleanMsg;
-        });
+                if (hasAttachments) {
+                    let textContent = '';
+                    if (typeof msg.content === 'string') {
+                        textContent = msg.content;
+                    } else if (Array.isArray(msg.content)) {
+                        textContent = msg.content.find((part: any) => part.type === 'text')?.text || '';
+                    }
 
-        // 🔍 DEBUG: Inspect incoming messages structure
-        const lastMsg = chatMessages[chatMessages.length - 1];
-        console.log('[Chat API] Request processed successfully');
-        if (lastMsg) {
-            console.log('[Chat API] lastMsg check:', {
-                role: lastMsg.role,
-                hasAttachments: !!lastMsg.experimental_attachments?.length
+                    return {
+                        role: 'user',
+                        content: [
+                            { type: 'text', text: textContent || 'Analiza esta imagen.' },
+                            ...msg.experimental_attachments.map((att: any) => {
+                                // Extract Buffer if it's a data URL for better reliability
+                                if (typeof att.url === 'string' && att.url.startsWith('data:')) {
+                                    const base64Content = att.url.split(',')[1];
+                                    return {
+                                        type: 'image',
+                                        image: Buffer.from(base64Content, 'base64'),
+                                        mimeType: att.contentType || 'image/jpeg'
+                                    };
+                                }
+                                return {
+                                    type: 'image',
+                                    image: att.url
+                                };
+                            })
+                        ]
+                    };
+                }
+
+                return {
+                    role: msg.role,
+                    content: typeof msg.content === 'string' ? msg.content : (msg.content?.text || String(msg.content)),
+                };
             });
-        }
+
+        // 🔍 DEBUG: Final check of the messages array structure (no values, just types)
+        console.log('[Chat API] Messages ready for stream:', JSON.stringify(formattedMessages.map((m: any) => ({
+            role: m.role,
+            contentType: typeof m.content,
+            parts: Array.isArray(m.content) ? m.content.map((p: any) => p.type) : undefined
+        })), null, 2));
 
         // Validate assistant access
         const [assistant] = await db

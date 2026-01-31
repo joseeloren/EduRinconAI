@@ -388,9 +388,17 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                 <form
                     onSubmit={(event) => {
                         event.preventDefault();
+                        console.log('[Chat Client] Submitting form. Files:', files);
+                        if (files) {
+                            console.log('[Chat Client] Files length:', files.length);
+                            console.log('[Chat Client] First file:', files[0]?.name, files[0]?.type);
+                        }
+
                         handleSubmit(event, {
                             experimental_attachments: files as any // Cast for TS compatibility if needed
                         });
+                        console.log('[Chat Client] handleSubmit called');
+
                         setFiles(undefined); // Clear files after send
                         if (fileInputRef.current) fileInputRef.current.value = '';
                     }}

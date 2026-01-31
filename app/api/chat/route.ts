@@ -4,6 +4,8 @@ import { assistants, chats, messages, assistantAccess } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { streamText } from 'ai';
 import { createOllama } from 'ollama-ai-provider';
+import { Agent, fetch as undiciFetch } from 'undici';
+import { canAccessAssistant } from '@/lib/auth/roles';
 
 // Helper to ensure baseURL is correct for Ollama
 const getBaseURL = () => {
@@ -138,7 +140,7 @@ export async function POST(request: Request) {
 
         try {
             const result = await streamText({
-                model: ollama(modelName),
+                model: ollama(modelName) as any, // Cast to any to bypass version mismatch
                 messages: allMessages,
                 temperature: (assistant.temperature || 70) / 100,
                 maxTokens: 2000,

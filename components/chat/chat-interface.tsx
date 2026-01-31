@@ -20,6 +20,7 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange }: ChatInterfaceProps) {
     const t = useTranslations('chat');
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
         api: '/api/chat',
         initialMessages,
@@ -29,7 +30,22 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         },
         onError: (error) => {
             console.error('Chat error:', error);
-            // Could add a toast here if we had the toast hook ready, or just let it log
+            try {
+                // Intenta parsear el error si viene como JSON string en el mensaje
+                const errorMessage = error.message;
+                try {
+                    const parsed = JSON.parse(errorMessage);
+                    if (parsed && parsed.details) {
+                        setErrorMsg(parsed.details);
+                        return;
+                    }
+                } catch (e) { }
+
+                // Fallback para mensajes estándar
+                setErrorMsg(errorMessage || 'Ha ocurrido un error al procesar tu solicitud.');
+            } catch (e) {
+                setErrorMsg('Ha ocurrido un error inesperado.');
+            }
         },
     });
 
@@ -155,6 +171,21 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100"></div>
                                 <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200"></div>
                             </div>
+                        </div>
+                    </div>
+                )}
+
+                {errorMsg && (
+                    <div className="flex justify-center my-4">
+                        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative max-w-[90%] text-sm" role="alert">
+                            <strong className="font-bold block mb-1">Error:</strong>
+                            <span className="block sm:inline">{errorMsg}</span>
+                            <button
+                                className="absolute top-0 bottom-0 right-0 px-4 py-3"
+                                onClick={() => setErrorMsg(null)}
+                            >
+                                <span className="fill-current h-6 w-6 text-red-500 font-bold">×</span>
+                            </button>
                         </div>
                     </div>
                 )}

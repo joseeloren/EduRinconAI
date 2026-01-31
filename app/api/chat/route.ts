@@ -22,6 +22,11 @@ const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '1200000
 const ollama = createOllama({
     baseURL: getBaseURL() + '/api', // ollama-ai-provider expects base URL (often with /api)
     fetch: (input, init) => {
+        console.log(`[Ollama Fetch] URL: ${input}`);
+        if (!input) {
+            console.error('[Ollama Fetch] CRITICAL: input is undefined!');
+            throw new Error('Ollama Fetch received undefined URL');
+        }
         // Custom fetch payload to support extended timeouts
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), LLM_BODY_TIMEOUT_MS);
@@ -40,6 +45,7 @@ const ollama = createOllama({
 });
 
 export async function POST(request: Request) {
+    console.log(`[Chat API] POST started! Content-Type: ${request.headers.get('content-type')}`);
     try {
         const session = await auth();
         if (!session?.user) {
@@ -87,15 +93,31 @@ export async function POST(request: Request) {
 
         const { messages: chatMessages, chatId, assistantId } = body;
 
+        // Map messages to include image parts if attachments exist
+        // This is required for vision-capable models in Vercel AI SDK
+        const formattedMessages = chatMessages.map((msg: any) => {
+            if (msg.role === 'user' && msg.experimental_attachments && msg.experimental_attachments.length > 0) {
+                console.log(`[Chat API] Formatting msg with ${msg.experimental_attachments.length} attachments`);
+                return {
+                    role: msg.role,
+                    content: [
+                        { type: 'text', text: msg.content || '' },
+                        ...msg.experimental_attachments.map((att: any) => ({
+                            type: 'image',
+                            image: att.url // Base64 Data URL
+                        }))
+                    ]
+                };
+            }
+            return msg;
+        });
+
         // 🔍 DEBUG: Inspect incoming messages structure
-        console.log('[Chat API] Received Request. Body type:', contentType);
         const lastMsg = chatMessages[chatMessages.length - 1];
+        console.log('[Chat API] Request processed successfully');
         if (lastMsg) {
-            console.log('[Chat API] Last Message:', JSON.stringify({
-                role: lastMsg.role,
-                content: lastMsg.content,
-                attachmentsCount: lastMsg.experimental_attachments?.length || 0
-            }, null, 2));
+            console.log('[Chat API] Last Message Role:', lastMsg.role);
+            console.log('[Chat API] Last Message Attachments:', lastMsg.experimental_attachments?.length || 0);
         }
 
         // Validate assistant access
@@ -178,7 +200,7 @@ export async function POST(request: Request) {
             content: assistant.systemPrompt,
         };
 
-        const allMessages = [systemMessage, ...chatMessages];
+        const allMessages = [systemMessage, ...formattedMessages];
 
         // Save last user message
         const lastUserMessage = chatMessages
@@ -196,7 +218,7 @@ export async function POST(request: Request) {
 
         // Stream response
         const modelName = process.env.LLM_MODEL_NAME || 'llama3.2';
-        console.log(`[Chat API] Starting stream with model: ${modelName}`);
+        console.log(`[Chat API] Starting stream with model: ${modelName}. Total messages: ${allMessages.length}`);
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
         try {

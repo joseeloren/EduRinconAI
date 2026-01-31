@@ -32,7 +32,8 @@
         "initial_message": "Hola soy Jose, tu profesor virtual. ¿En qué puedo ayudarte?",
         "instructions": "Escribe tu pregunta y presiona Enter",
         "placeholder": "Escribe tu pregunta...",
-        "sources": "Fuentes:"
+        "sources": "Fuentes:",
+        "image_requires_text": "Debes acompañar la foto de un texto o mensaje para que el profesor pueda ayudarte."
     },
     "admin": {
         "title": "Panel de Administración",

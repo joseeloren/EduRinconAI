@@ -32,7 +32,8 @@
         "initial_message": "Hello, I'm Jose, your virtual teacher. How can I help you?",
         "instructions": "Type your question and press Enter",
         "placeholder": "Type your question...",
-        "sources": "Sources:"
+        "sources": "Sources:",
+        "image_requires_text": "You must accompany the photo with text or a message so the teacher can help you."
     },
     "admin": {
         "title": "Administration Panel",

@@ -43,7 +43,9 @@ const TALKING_FILES = [
 ].map(f => `/animations/${f}`);
 
 // Helper to manually trim start of animation (remove T-pose)
-function trimClip(clip: AnimationClip, timeToRemove: number = 0.1) {
+function trimClip(clip: AnimationClip, timeToRemove: number = 0.33) { // Increased to 0.33s (~10 frames)
+    if (clip.duration <= timeToRemove) return clip; // Don't trim if too short
+
     clip.tracks.forEach(track => {
         const times = track.times;
         const values = track.values;
@@ -61,8 +63,10 @@ function trimClip(clip: AnimationClip, timeToRemove: number = 0.1) {
             }
         }
 
-        track.times = new Float32Array(newTimes);
-        track.values = new Float32Array(newValues);
+        if (newTimes.length > 0) {
+            track.times = new Float32Array(newTimes);
+            track.values = new Float32Array(newValues);
+        }
     });
     clip.duration = Math.max(0, clip.duration - timeToRemove);
     return clip;
@@ -81,8 +85,11 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         return idleGLTFs.flatMap((gltf, i) => {
             const clips = gltf.animations || [];
             clips.forEach((clip: AnimationClip) => {
-                clip.name = `Idle_${i}`;
-                trimClip(clip, 0.1); // Trim 0.1s from start
+                // Check if already trimmed to avoid double trimming on re-renders
+                if (!clip.name.startsWith('Idle_')) {
+                    clip.name = `Idle_${i}`;
+                    trimClip(clip, 0.33);
+                }
             });
             return clips;
         });
@@ -92,8 +99,10 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         return talkingGLTFs.flatMap((gltf, i) => {
             const clips = gltf.animations || [];
             clips.forEach((clip: AnimationClip) => {
-                clip.name = `Talking_${i}`;
-                trimClip(clip, 0.1); // Trim 0.1s from start
+                if (!clip.name.startsWith('Talking_')) {
+                    clip.name = `Talking_${i}`;
+                    trimClip(clip, 0.33);
+                }
             });
             return clips;
         });

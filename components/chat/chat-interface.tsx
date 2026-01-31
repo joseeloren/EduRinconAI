@@ -79,17 +79,20 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         }
     }, []);
 
+    const [audioBlocked, setAudioBlocked] = useState(false);
+
     // Helper to play audio
     const playAudio = (text: string) => {
         if (!synthRef.current || voices.length === 0) return;
 
         synthRef.current.cancel();
+        setAudioBlocked(false); // Reset blocked state on new attempt
 
         const cleanText = text.replace(/[*#_`]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.lang = 'es-ES';
 
-        // Select best voice (Google > Microsoft > default)
+        // Select best voice
         const preferredVoice = voices.find(v => v.lang.includes('es') && v.name.includes('Google')) ||
             voices.find(v => v.lang.includes('es') && v.name.includes('Microsoft')) ||
             voices.find(v => v.lang.includes('es'));
@@ -99,6 +102,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         utterance.onstart = () => {
             setIsSpeaking(true);
             onSpeakingChange?.(true);
+            setAudioBlocked(false);
         };
         utterance.onend = () => {
             setIsSpeaking(false);
@@ -108,35 +112,49 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             console.error('TTS Error:', e);
             setIsSpeaking(false);
             onSpeakingChange?.(false);
+
+            if (e.error === 'not-allowed') {
+                setAudioBlocked(true);
+            }
         };
 
         synthRef.current.speak(utterance);
     };
 
-    // Get the last assistant message object
-    const lastAssistantMessage = messages
-        .filter(m => m.role === 'assistant')
-        .pop();
+    // Retry handler for blocked audio
+    const handleRetryAudio = () => {
+        if (lastAssistantMessage) {
+            playAudio(lastAssistantMessage.content);
+        }
+    };
 
-    const lastReadMessageId = useRef<string | null>(null);
-
-    // Handle TTS Logic
+    // Handle TTS when new message arrives
     useEffect(() => {
         if (!lastAssistantMessage || !synthRef.current || voices.length === 0) return;
 
-        // Case 1: Welcome Message
-        // It's static, so we can read it immediately if we haven't read it yet.
+        // Logic to prevent reading old history on page load, 
+        // BUT allow reading the "Welcome Message" (which is technically history/initial).
+        const isWelcomeMessage = lastAssistantMessage.id === 'welcome-message';
+        const isNewMessage = mountedRef.current; // If we are already mounted, any change is a new message
+
+        if (!isNewMessage && !isWelcomeMessage) {
+            // It's page load, and it's NOT a welcome message -> It's just history. Don't speak.
+            mountedRef.current = true;
+            return;
+        }
+
+        mountedRef.current = true;
+
+        // Case 1: Welcome Message with blocked auto-play handling
         if (lastAssistantMessage.id === 'welcome-message') {
             if (lastReadMessageId.current !== lastAssistantMessage.id) {
                 lastReadMessageId.current = lastAssistantMessage.id;
-                // Add a small delay to ensure page interaction/focus allows audio
-                setTimeout(() => playAudio(lastAssistantMessage.content), 1500);
+                setTimeout(() => playAudio(lastAssistantMessage.content), 1000);
             }
             return;
         }
 
-        // Case 2: Generated Messages (Streaming)
-        // Only read when streaming is finished (isLoading is false)
+        // Case 2: Generated Messages
         if (!isLoading && lastAssistantMessage.id !== lastReadMessageId.current) {
             lastReadMessageId.current = lastAssistantMessage.id;
             playAudio(lastAssistantMessage.content);

@@ -46,14 +46,32 @@ export async function POST(request: Request) {
             return new Response('Unauthorized', { status: 401 });
         }
 
-        const { messages: chatMessages, chatId, assistantId } = await request.json();
+        let body;
+        const contentType = request.headers.get('content-type') || '';
+
+        if (contentType.includes('multipart/form-data')) {
+            const formData = await request.formData();
+            body = {
+                messages: JSON.parse(formData.get('messages') as string),
+                chatId: formData.get('chatId') as string,
+                assistantId: formData.get('assistantId') as string,
+            };
+            // Note: Attachments are already included in the messages JSON if sent by useChat
+        } else {
+            body = await request.json();
+        }
+
+        const { messages: chatMessages, chatId, assistantId } = body;
 
         // 🔍 DEBUG: Inspect incoming messages structure
-        console.log('[Chat API] Received Request');
+        console.log('[Chat API] Received Request. Body type:', contentType);
         const lastMsg = chatMessages[chatMessages.length - 1];
         if (lastMsg) {
-            console.log('[Chat API] Last Message Content:', JSON.stringify(lastMsg.content, null, 2));
-            console.log('[Chat API] Last Message Attachments:', JSON.stringify((lastMsg as any).experimental_attachments, null, 2));
+            console.log('[Chat API] Last Message:', JSON.stringify({
+                role: lastMsg.role,
+                content: lastMsg.content,
+                attachmentsCount: lastMsg.experimental_attachments?.length || 0
+            }, null, 2));
         }
 
         // Validate assistant access

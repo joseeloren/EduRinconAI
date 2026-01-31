@@ -118,13 +118,13 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
 
         // Ensure it's playing
         if (!desiredAction.isRunning()) {
-            desiredAction.reset().fadeIn(0.5).play();
+            desiredAction.reset().fadeIn(1.2).play();
         }
 
         // Crossfade others out
         Object.keys(actions).forEach(key => {
             if (key !== desiredActionName) {
-                actions[key]?.fadeOut(0.5);
+                actions[key]?.fadeOut(1.2);
             }
         });
 
@@ -152,87 +152,12 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
 IDLE_FILES.forEach(url => useGLTF.preload(url));
 TALKING_FILES.forEach(url => useGLTF.preload(url));
 
-const BoneControl = ({ label, value, onChange }: { label: string, value: BoneRotation, onChange: (v: BoneRotation) => void }) => {
-    return (
-        <div className="mb-2 p-2 border border-blue-100 rounded bg-blue-50/50">
-            <div className="text-xs font-bold mb-1 text-blue-800">{label}</div>
-            <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-1">
-                    <span className="w-3 text-[10px] font-bold text-red-500">X</span>
-                    <input type="range" min="-3.14" max="3.14" step="0.05" value={value.x}
-                        onChange={(e) => onChange({ ...value, x: parseFloat(e.target.value) })} className="flex-1 h-1" />
-                    <span className="w-6 text-[10px] text-right font-mono">{value.x.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <span className="w-3 text-[10px] font-bold text-green-500">Y</span>
-                    <input type="range" min="-3.14" max="3.14" step="0.05" value={value.y}
-                        onChange={(e) => onChange({ ...value, y: parseFloat(e.target.value) })} className="flex-1 h-1" />
-                    <span className="w-6 text-[10px] text-right font-mono">{value.y.toFixed(2)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <span className="w-3 text-[10px] font-bold text-blue-500">Z</span>
-                    <input type="range" min="-3.14" max="3.14" step="0.05" value={value.z}
-                        onChange={(e) => onChange({ ...value, z: parseFloat(e.target.value) })} className="flex-1 h-1" />
-                    <span className="w-6 text-[10px] text-right font-mono">{value.z.toFixed(2)}</span>
-                </div>
-            </div>
-        </div>
-    );
-};
-
 export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     // Hardcoded model
     const startModel = '/models/profe.glb';
 
-    // DEBUG STATE
-    const [showDebug, setShowDebug] = useState(false);
-    const [debugPose, setDebugPose] = useState<DebugPose>({
-        rightArm: { x: 0, y: 0, z: -1.3 },
-        rightForeArm: { x: 0, y: 0, z: 0 },
-        rightHand: { x: 0, y: 0, z: 0 },
-        leftArm: { x: 0, y: 0, z: 1.3 },
-        leftForeArm: { x: 0, y: 0, z: 0 },
-        leftHand: { x: 0, y: 0, z: 0 },
-    });
-
-    const updateBone = (bone: keyof DebugPose, val: BoneRotation) => {
-        setDebugPose(prev => ({ ...prev, [bone]: val }));
-    };
-
     return (
         <div className="w-full h-full min-h-[400px] flex flex-col relative">
-            <div className="mb-2 flex flex-col gap-2 pointer-events-auto relative z-20 bg-white/90 p-2 rounded shadow-sm">
-                <div className="flex justify-end">
-                    <button
-                        onClick={() => setShowDebug(!showDebug)}
-                        className={`text-xs px-2 py-1 rounded font-medium ${showDebug ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}
-                    >
-                        {showDebug ? 'Cerrar Debug' : 'Debug'}
-                    </button>
-                </div>
-
-                {showDebug && (
-                    <div className="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1 border-t pt-2">
-                        <div className="text-[10px] text-gray-500 text-center font-mono">DEBUG MODE ACTIVE - ANIMATION PAUSED</div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                            <div>
-                                <h4 className="font-bold text-xs text-center mb-1 text-gray-700">RIGHT (Derecha)</h4>
-                                <BoneControl label="Right Arm (Hombro)" value={debugPose.rightArm} onChange={(v) => updateBone('rightArm', v)} />
-                                <BoneControl label="Right ForeArm (Codo)" value={debugPose.rightForeArm} onChange={(v) => updateBone('rightForeArm', v)} />
-                                <BoneControl label="Right Hand (Mano)" value={debugPose.rightHand} onChange={(v) => updateBone('rightHand', v)} />
-                            </div>
-                            <div>
-                                <h4 className="font-bold text-xs text-center mb-1 text-gray-700">LEFT (Izquierda)</h4>
-                                <BoneControl label="Left Arm (Hombro)" value={debugPose.leftArm} onChange={(v) => updateBone('leftArm', v)} />
-                                <BoneControl label="Left ForeArm (Codo)" value={debugPose.leftForeArm} onChange={(v) => updateBone('leftForeArm', v)} />
-                                <BoneControl label="Left Hand (Mano)" value={debugPose.leftHand} onChange={(v) => updateBone('leftHand', v)} />
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
-
             <Canvas className="flex-1 bg-transparent" camera={{ position: [0, 0.2, 5.5], fov: 45 }} gl={{ alpha: true }} dpr={[1, 2]}>
 
                 <ambientLight intensity={1.8} />
@@ -242,7 +167,6 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
                 <AvatarModel
                     isSpeaking={isSpeaking}
                     modelUrl={startModel}
-                    debugPose={showDebug ? debugPose : null}
                 />
             </Canvas>
         </div>

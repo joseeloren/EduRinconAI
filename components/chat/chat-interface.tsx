@@ -4,98 +4,36 @@ import { useChat } from 'ai/react';
 import { Send, FileText, Volume2 } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
-interface ChatInterfaceProps {
-    assistantId: string;
-    chatId?: string;
-    initialMessages?: Array<{
-        id: string;
-        role: 'user' | 'assistant' | 'system';
-        content: string;
-    }>;
-    onSpeakingChange?: (isSpeaking: boolean) => void;
-}
+// ... interface ...
 
 export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange }: ChatInterfaceProps) {
     const t = useTranslations('chat');
+    const locale = useLocale(); // Get current locale (es, en, etc)
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
-        api: '/api/chat',
-        initialMessages,
-        body: {
-            assistantId,
-            chatId,
-        },
-        onError: (error) => {
-            console.error('Chat error:', error);
-            try {
-                // Intenta parsear el error si viene como JSON string en el mensaje
-                const errorMessage = error.message;
-                try {
-                    const parsed = JSON.parse(errorMessage);
-                    if (parsed && parsed.details) {
-                        setErrorMsg(parsed.details);
-                        return;
-                    }
-                } catch (e) { }
+    // ... useChat hook ...
 
-                // Fallback para mensajes estándar
-                setErrorMsg(errorMessage || 'Ha ocurrido un error al procesar tu solicitud.');
-            } catch (e) {
-                setErrorMsg('Ha ocurrido un error inesperado.');
-            }
-        },
-    });
-
-    // TTS State
-    const [isSpeaking, setIsSpeaking] = useState(false);
-    const synthRef = useRef<SpeechSynthesis | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-    const mountedRef = useRef(false);
-
-    // Initialize SpeechSynthesis and load voices
-    useEffect(() => {
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            synthRef.current = window.speechSynthesis;
-
-            const loadVoices = () => {
-                const availableVoices = window.speechSynthesis.getVoices();
-                if (availableVoices.length > 0) {
-                    setVoices(availableVoices);
-                }
-            };
-
-            loadVoices();
-            window.speechSynthesis.onvoiceschanged = loadVoices;
-
-            return () => {
-                window.speechSynthesis.onvoiceschanged = null;
-                if (synthRef.current) {
-                    synthRef.current.cancel();
-                }
-            };
-        }
-    }, []);
-
-    const [audioBlocked, setAudioBlocked] = useState(false);
+    // ... TTS State ...
 
     // Helper to play audio
     const playAudio = (text: string) => {
         if (!synthRef.current || voices.length === 0) return;
 
         synthRef.current.cancel();
-        setAudioBlocked(false); // Reset blocked state on new attempt
+        setAudioBlocked(false);
 
         const cleanText = text.replace(/[*#_`]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'es-ES';
 
-        // Select best voice
-        const preferredVoice = voices.find(v => v.lang.includes('es') && v.name.includes('Google')) ||
-            voices.find(v => v.lang.includes('es') && v.name.includes('Microsoft')) ||
-            voices.find(v => v.lang.includes('es'));
+        // Map locale to full BCP 47 tag if needed
+        const langTag = locale === 'en' ? 'en-US' : 'es-ES'; // Default to Spanish if 'es', English if 'en'
+        utterance.lang = langTag;
+
+        // Select best voice matching the locale
+        const preferredVoice = voices.find(v => v.lang.includes(locale) && v.name.includes('Google')) ||
+            voices.find(v => v.lang.includes(locale) && v.name.includes('Microsoft')) ||
+            voices.find(v => v.lang.includes(locale));
 
         if (preferredVoice) utterance.voice = preferredVoice;
 

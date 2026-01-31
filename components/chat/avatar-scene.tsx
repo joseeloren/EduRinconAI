@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { useGLTF, useAnimations, useFBX } from '@react-three/drei';
+import { useGLTF, useAnimations } from '@react-three/drei';
 import { AnimationClip, Object3D } from 'three';
 
 type BoneRotation = { x: number; y: number; z: number };
@@ -25,69 +25,130 @@ interface Avatar3DProps {
 // URL local del modelo (usar modelo humano por defecto)
 const DEFAULT_AVATAR_URL = '/models/CesiumMan.glb';
 
+// --- PLAYLIST CONFIG ---
+// Load all available variations
+const IDLE_FILES = [
+    'M_Standing_Idle_001.glb',
+    'M_Standing_Idle_002.glb',
+    // Variations
+    ...Array.from({ length: 10 }, (_, i) => `M_Standing_Idle_Variations_00${i + 1}.glb`.replace('0010', '010')),
+    // Expressions (Good for idle variety)
+    ...Array.from({ length: 18 }, (_, i) => `M_Standing_Expressions_00${i + 1}.glb`.replace('0010', '010').replace('0011', '011').replace('0012', '012').replace('0013', '013').replace('0014', '014').replace('0015', '015').replace('0016', '016').replace('0017', '017').replace('0018', '018'))
+].map(f => `/animations/${f}`);
+
+const TALKING_FILES = [
+    ...Array.from({ length: 10 }, (_, i) => `M_Talking_Variations_00${i + 1}.glb`.replace('0010', '010'))
+].map(f => `/animations/${f}`);
+
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: Avatar3DProps) {
     const group = useRef<any>(null);
     const { scene } = useGLTF(modelUrl);
 
-    // Load Animations (FBX)
-    // Note: These need to be present in public/animations/
-    // We use a try/catch pattern or error boundary implicitly by how/drei handles it? 
-    // Actually useFBX will suspend. If files missing, it might error.
-    // For safety, we can preload or just let it fail to console if missing.
-    const { animations: idleAnims } = useFBX('/animations/Idle.fbx');
-    const { animations: talkingAnims } = useFBX('/animations/Talking.fbx');
+    // Load ALL animations
+    const idleGLTFs = useGLTF(IDLE_FILES) as any[];
+    const talkingGLTFs = useGLTF(TALKING_FILES) as any[];
 
-    // Rename clips to identifiable names
-    if (idleAnims[0]) idleAnims[0].name = 'Idle';
-    if (talkingAnims[0]) talkingAnims[0].name = 'Talking';
+    // Extract and rename clips to be unique
+    const idleClips = useMemo(() => {
+        return idleGLTFs.flatMap((gltf, i) => {
+            const clips = gltf.animations || [];
+            clips.forEach((clip: AnimationClip) => {
+                clip.name = `Idle_${i}`; // Unique name
+            });
+            return clips;
+        });
+    }, [idleGLTFs]);
 
-    const { actions } = useAnimations([idleAnims[0], talkingAnims[0]], group);
+    const talkingClips = useMemo(() => {
+        return talkingGLTFs.flatMap((gltf, i) => {
+            const clips = gltf.animations || [];
+            clips.forEach((clip: AnimationClip) => {
+                clip.name = `Talking_${i}`;
+            });
+            return clips;
+        });
+    }, [talkingGLTFs]);
 
+    // Combine all for the mixer
+    const { actions } = useAnimations([...idleClips, ...talkingClips], group);
+
+    // State to track current animation index
+    const [currentIdleIdx, setCurrentIdleIdx] = useState(0);
+    const [currentTalkingIdx, setCurrentTalkingIdx] = useState(0);
+
+    // Randomizer effect
     useEffect(() => {
-        // Reset and fade all actions
-        Object.values(actions).forEach(action => action?.fadeOut(0.5));
+        let timeout: NodeJS.Timeout;
 
-        if (isSpeaking) {
-            if (actions['Talking']) {
-                actions['Talking'].reset().fadeIn(0.5).play();
-            } else {
-                // Fallback if missing
-                console.warn("Missing Talking animation");
-            }
-        } else {
-            if (actions['Idle']) {
-                actions['Idle'].reset().fadeIn(0.5).play();
-            }
+        const loop = () => {
+            // Pick next random duration between 3s and 8s
+            const duration = 3000 + Math.random() * 5000;
+
+            timeout = setTimeout(() => {
+                if (isSpeaking) {
+                    // Switch talking anim
+                    const next = Math.floor(Math.random() * talkingClips.length);
+                    setCurrentTalkingIdx(next);
+                } else {
+                    // Switch idle anim
+                    const next = Math.floor(Math.random() * idleClips.length);
+                    setCurrentIdleIdx(next);
+                }
+                loop();
+            }, duration);
+        };
+
+        loop();
+        return () => clearTimeout(timeout);
+    }, [isSpeaking, idleClips.length, talkingClips.length]);
+
+    // Playback Controller
+    useEffect(() => {
+        // Fade out everything that isn't current
+        const desiredActionName = isSpeaking
+            ? `Talking_${currentTalkingIdx}`
+            : `Idle_${currentIdleIdx}`;
+
+        const desiredAction = actions[desiredActionName];
+
+        // If track missing, fallback
+        if (!desiredAction) return;
+
+        // Ensure it's playing
+        if (!desiredAction.isRunning()) {
+            desiredAction.reset().fadeIn(0.5).play();
         }
-    }, [isSpeaking, actions]);
+
+        // Crossfade others out
+        Object.keys(actions).forEach(key => {
+            if (key !== desiredActionName) {
+                actions[key]?.fadeOut(0.5);
+            }
+        });
+
+    }, [isSpeaking, currentIdleIdx, currentTalkingIdx, actions]);
 
     useFrame((state) => {
         if (!group.current) return;
-
-        // Debug Pose Logic (Optional Override)
-        if (debugPose) {
-            const nodes = group.current.nodes || {}; // This might need accessing underlying nodes from scene traverse if using GLTF scene directly
-            // ... legacy debug logic ... 
-            // Ideally we should traverse 'scene' to find bones, not rely on 'nodes' from useGLTF hook if we didn't destructure it dynamically.
-            // For now, let's keep debug disabled or simple.
-        }
+        // ... debug logic removed for clarity ... 
     });
 
     return (
         <group ref={group}>
             <primitive
                 object={scene}
-                position={[0, -1.6, 0]} // Stand on ground
-                rotation={[0, modelUrl.includes('Soldier.glb') ? Math.PI : 0, 0]} // Face forward
+                position={[0, -1.6, 0]}
+                rotation={[0, modelUrl.includes('Soldier.glb') ? Math.PI : 0, 0]}
                 scale={1.5}
             />
         </group>
     );
 }
 
-// Preload to prevent suspense stutter
-useFBX.preload('/animations/Idle.fbx');
-useFBX.preload('/animations/Talking.fbx');
+
+// Preload assets
+IDLE_FILES.forEach(url => useGLTF.preload(url));
+TALKING_FILES.forEach(url => useGLTF.preload(url));
 
 const BoneControl = ({ label, value, onChange }: { label: string, value: BoneRotation, onChange: (v: BoneRotation) => void }) => {
     return (
@@ -118,8 +179,8 @@ const BoneControl = ({ label, value, onChange }: { label: string, value: BoneRot
 };
 
 export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
-    const [models, setModels] = useState<Array<{ name: string; url: string }>>([]);
-    const [selected, setSelected] = useState<string>(DEFAULT_AVATAR_URL);
+    // Hardcoded model
+    const startModel = '/models/profe.glb';
 
     // DEBUG STATE
     const [showDebug, setShowDebug] = useState(false);
@@ -132,45 +193,6 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
         leftHand: { x: 0, y: 0, z: 0 },
     });
 
-    useEffect(() => {
-        // Load saved selection from localStorage on mount
-        try {
-            const saved = localStorage.getItem('selectedAvatarModel');
-            if (saved) setSelected(saved);
-        } catch (e) { }
-    }, []);
-
-    useEffect(() => {
-        // Fetch available models from API
-        fetch('/api/models')
-            .then((res) => res.json())
-            .then((data) => {
-                if (Array.isArray(data)) {
-                    setModels(data);
-                    // Validate saved selection exists in available models
-                    setSelected((prev) => {
-                        const exists = data.some((m: { url: string }) => m.url === prev);
-                        if (!exists) {
-                            try { localStorage.setItem('selectedAvatarModel', DEFAULT_AVATAR_URL); } catch { }
-                            return DEFAULT_AVATAR_URL;
-                        }
-                        return prev;
-                    });
-                }
-            })
-            .catch((err) => console.error('Failed to load models:', err));
-    }, []);
-
-    const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const val = e.target.value;
-        setSelected(val);
-        try { localStorage.setItem('selectedAvatarModel', val); } catch (e) { }
-    };
-
-    const options = models.length > 0
-        ? models
-        : [{ name: 'Humano (por defecto)', url: DEFAULT_AVATAR_URL }];
-
     const updateBone = (bone: keyof DebugPose, val: BoneRotation) => {
         setDebugPose(prev => ({ ...prev, [bone]: val }));
     };
@@ -178,17 +200,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
     return (
         <div className="w-full h-full min-h-[400px] flex flex-col relative">
             <div className="mb-2 flex flex-col gap-2 pointer-events-auto relative z-20 bg-white/90 p-2 rounded shadow-sm">
-                <div className="flex items-center gap-3">
-                    <label className="text-sm text-gray-600 font-medium">Modelo 3D:</label>
-                    <select
-                        value={selected}
-                        onChange={onChange}
-                        className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm font-medium cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {options.map((m) => (
-                            <option key={m.url} value={m.url}>{m.name}</option>
-                        ))}
-                    </select>
+                <div className="flex justify-end">
                     <button
                         onClick={() => setShowDebug(!showDebug)}
                         className={`text-xs px-2 py-1 rounded font-medium ${showDebug ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}
@@ -227,7 +239,7 @@ export function Avatar3DWrapper({ isSpeaking }: { isSpeaking: boolean }) {
 
                 <AvatarModel
                     isSpeaking={isSpeaking}
-                    modelUrl={selected}
+                    modelUrl={startModel}
                     debugPose={showDebug ? debugPose : null}
                 />
             </Canvas>

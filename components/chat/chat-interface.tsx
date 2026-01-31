@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from 'ai/react';
-import { Send, FileText, Volume2, Mic, MicOff } from 'lucide-react';
+import { Send, FileText, Volume2, Mic, MicOff, Image as ImageIcon, X } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -21,7 +21,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
     const t = useTranslations('chat');
     const locale = useLocale();
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+    const { messages, input, handleInputChange, handleSubmit, isLoading, append, setInput } = useChat({
         api: '/api/chat',
         initialMessages,
         body: {
@@ -56,7 +56,12 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
 
     // STT State
     const [isListening, setIsListening] = useState(false);
+    const [autoSend, setAutoSend] = useState(false); // New Auto-send state
     const recognitionRef = useRef<any>(null);
+
+    // Vision / Attachments State
+    const [files, setFiles] = useState<FileList | undefined>(undefined);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Initialize SpeechSynthesis
     useEffect(() => {
@@ -102,12 +107,38 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
 
         recognition.onresult = (event: any) => {
             const transcript = event.results[0][0].transcript;
-            const newValue = input ? input + ' ' + transcript : transcript;
-            handleInputChange({ target: { value: newValue } } as any);
+
+            if (autoSend) {
+                // Determine if we append to existing input or send strictly the voice
+                // Usually auto-send implies "Send what I just said"
+                // If there was text in input, we might want to preserve it or append?
+                // For simplicity: If autoSend, we append the transcript immediately as a message
+                append({
+                    role: 'user',
+                    content: input ? input + ' ' + transcript : transcript
+                });
+                setInput(''); // Clear input after auto-send
+            } else {
+                const newValue = input ? input + ' ' + transcript : transcript;
+                handleInputChange({ target: { value: newValue } } as any);
+            }
         };
 
         recognitionRef.current = recognition;
         recognition.start();
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        if (event.target.files) {
+            setFiles(event.target.files);
+        }
+    };
+
+    const clearFiles = () => {
+        setFiles(undefined);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     // Helper to play audio (DEFINED AFTER HOOKS)
@@ -313,8 +344,76 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             </div>
 
             {/* Input Form */}
-            <div className="border-t border-gray-200 p-4 bg-white">
-                <form onSubmit={handleSubmit} className="flex gap-2">
+            <div className="border-t border-gray-200 p-4 bg-white flex flex-col gap-2">
+
+                {/* Auto-send Toggle & Previews */}
+                <div className="flex flex-col gap-2">
+                    {files && files.length > 0 && (
+                        <div className="flex gap-2 px-2 overflow-x-auto">
+                            {Array.from(files).map((file, i) => (
+                                <div key={i} className="relative group">
+                                    <div className="w-16 h-16 rounded-md border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
+                                        <img
+                                            src={URL.createObjectURL(file)}
+                                            alt="preview"
+                                            className="w-full h-full object-cover"
+                                            onLoad={(e) => URL.revokeObjectURL((e.target as HTMLImageElement).src)}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={clearFiles}
+                                        className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600"
+                                        type="button"
+                                    >
+                                        <X className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="flex items-center justify-end px-2 gap-2 text-xs text-gray-500">
+                        <label className="flex items-center gap-2 cursor-pointer hover:text-blue-600 transition-colors">
+                            <input
+                                type="checkbox"
+                                checked={autoSend}
+                                onChange={(e) => setAutoSend(e.target.checked)}
+                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-3 h-3"
+                            />
+                            <span>{locale === 'en' ? 'Auto-send voice' : 'Enviar voz automáticamente'}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <form
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        handleSubmit(event, {
+                            experimental_attachments: files as any // Cast for TS compatibility if needed
+                        });
+                        setFiles(undefined); // Clear files after send
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="flex gap-2"
+                >
+                    <input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                    />
+
+                    <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all"
+                        title="Subir imagen"
+                    >
+                        <ImageIcon className="w-5 h-5" />
+                    </button>
+
                     <button
                         type="button"
                         onClick={toggleListening}
@@ -325,6 +424,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                     >
                         {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
                     </button>
+
                     <input
                         value={input}
                         onChange={handleInputChange}
@@ -334,7 +434,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                     />
                     <button
                         type="submit"
-                        disabled={isLoading || !input.trim()}
+                        disabled={isLoading || (!input.trim() && (!files || files.length === 0))}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                     >
                         <Send className="w-4 h-4" />

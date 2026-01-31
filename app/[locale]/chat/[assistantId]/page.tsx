@@ -10,12 +10,16 @@ import { ArrowLeft, FileText } from 'lucide-react';
 
 import { messages } from '@/db/schema';
 
+import { getTranslations } from 'next-intl/server';
+
+// ... imports ...
+
 export default async function ChatPage(props: {
-    params: Promise<{ assistantId: string }>;
+    params: Promise<{ assistantId: string; locale: string }>;
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
     const params = await props.params;
-    const { assistantId } = params;
+    const { assistantId, locale } = params;
     const session = await auth();
 
     if (!session?.user) {
@@ -32,7 +36,7 @@ export default async function ChatPage(props: {
         notFound();
     }
 
-
+    const t = await getTranslations({ locale, namespace: 'chat' });
 
     // Message history logic
     let initialMessages: any[] = [];
@@ -52,11 +56,11 @@ export default async function ChatPage(props: {
             createdAt: msg.createdAt,
         }));
     } else {
-        // New chat: Add welcome message
+        // New chat: Add welcome message (Localized)
         initialMessages = [{
             id: 'welcome-message',
             role: 'assistant',
-            content: `Hola soy Jose, tu profesor virtual. ¿En qué puedo ayudarte?`,
+            content: t('initial_message'),
             createdAt: new Date(),
         }];
     }

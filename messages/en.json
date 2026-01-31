@@ -29,6 +29,7 @@
     },
     "chat": {
         "welcome": "👋 Hello! How can I help you today?",
+        "initial_message": "Hello, I'm Jose, your virtual teacher. How can I help you?",
         "instructions": "Type your question and press Enter",
         "placeholder": "Type your question...",
         "sources": "Sources:"

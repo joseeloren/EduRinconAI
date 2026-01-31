@@ -53,44 +53,68 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
     const [isSpeaking, setIsSpeaking] = useState(false);
     const synthRef = useRef<SpeechSynthesis | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+    const mountedRef = useRef(false);
 
-    // Scroll to bottom on new message
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
-    // Initialize SpeechSynthesis
+    // Initialize SpeechSynthesis and load voices
     useEffect(() => {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
             synthRef.current = window.speechSynthesis;
+
+            const loadVoices = () => {
+                const availableVoices = window.speechSynthesis.getVoices();
+                if (availableVoices.length > 0) {
+                    setVoices(availableVoices);
+                }
+            };
+
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+
+            return () => {
+                window.speechSynthesis.onvoiceschanged = null;
+                if (synthRef.current) {
+                    synthRef.current.cancel();
+                }
+            };
         }
-        return () => {
-            if (synthRef.current) {
-                synthRef.current.cancel();
-            }
-        };
     }, []);
 
-    // Get the last assistant message content for TTS
+    // Get the last assistant message object
     const lastAssistantMessage = messages
         .filter(m => m.role === 'assistant')
-        .pop()?.content || '';
+        .pop();
 
     // Handle TTS when new message arrives
     useEffect(() => {
-        if (!lastAssistantMessage || !synthRef.current) return;
+        if (!lastAssistantMessage || !synthRef.current || voices.length === 0) return;
+
+        // Logic to prevent reading old history on page load, 
+        // BUT allow reading the "Welcome Message" (which is technically history/initial).
+        const isWelcomeMessage = lastAssistantMessage.id === 'welcome-message';
+        const isNewMessage = mountedRef.current; // If we are already mounted, any change is a new message
+
+        if (!isNewMessage && !isWelcomeMessage) {
+            // It's page load, and it's NOT a welcome message -> It's just history. Don't speak.
+            mountedRef.current = true;
+            return;
+        }
+
+        mountedRef.current = true;
 
         // Stop previous
         synthRef.current.cancel();
 
         // Speak
-        const cleanText = lastAssistantMessage.replace(/[*#_`]/g, '');
+        const cleanText = lastAssistantMessage.content.replace(/[*#_`]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'es-ES'; // Default, could be improved
+        utterance.lang = 'es-ES';
 
-        const voices = synthRef.current.getVoices();
+        // Select best voice (Google > Microsoft > default)
         const preferredVoice = voices.find(v => v.lang.includes('es') && v.name.includes('Google')) ||
+            voices.find(v => v.lang.includes('es') && v.name.includes('Microsoft')) ||
             voices.find(v => v.lang.includes('es'));
+
         if (preferredVoice) utterance.voice = preferredVoice;
 
         utterance.onstart = () => {
@@ -107,9 +131,12 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         };
 
         synthRef.current.speak(utterance);
-    }, [lastAssistantMessage, onSpeakingChange]);
+    }, [lastAssistantMessage, onSpeakingChange, voices]);
 
-    // ... useEffect for scrolling
+    // Scroll to bottom on new message
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
 
     return (
         <div className="flex flex-col flex-1 min-h-0">

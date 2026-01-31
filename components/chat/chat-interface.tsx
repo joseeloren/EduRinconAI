@@ -389,6 +389,12 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                     onSubmit={(event) => {
                         event.preventDefault();
                         const attachments = files ? Array.from(files) : [];
+
+                        if (attachments.length > 0 && !input.trim()) {
+                            setErrorMsg(t('image_requires_text'));
+                            return;
+                        }
+
                         console.log('[Chat Client] Submitting form. Attachments length:', attachments.length);
 
                         handleSubmit(event, {

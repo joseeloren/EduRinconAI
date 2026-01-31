@@ -93,31 +93,36 @@ export async function POST(request: Request) {
 
         const { messages: chatMessages, chatId, assistantId } = body;
 
-        // Map messages to include image parts if attachments exist
-        // This is required for vision-capable models in Vercel AI SDK
+        // Map messages to strictly follow CoreMessage structure
+        // This removes extra properties like 'id' and 'createdAt' which cause validation errors
+        // and handles multi-part content for images.
         const formattedMessages = chatMessages.map((msg: any) => {
+            const cleanMsg: any = {
+                role: msg.role,
+                content: msg.content || '',
+            };
+
             if (msg.role === 'user' && msg.experimental_attachments && msg.experimental_attachments.length > 0) {
                 console.log(`[Chat API] Formatting msg with ${msg.experimental_attachments.length} attachments`);
-                return {
-                    role: msg.role,
-                    content: [
-                        { type: 'text', text: msg.content || '' },
-                        ...msg.experimental_attachments.map((att: any) => ({
-                            type: 'image',
-                            image: att.url // Base64 Data URL
-                        }))
-                    ]
-                };
+                cleanMsg.content = [
+                    { type: 'text', text: msg.content || '' },
+                    ...msg.experimental_attachments.map((att: any) => ({
+                        type: 'image',
+                        image: att.url // Base64 Data URL
+                    }))
+                ];
             }
-            return msg;
+            return cleanMsg;
         });
 
         // 🔍 DEBUG: Inspect incoming messages structure
         const lastMsg = chatMessages[chatMessages.length - 1];
         console.log('[Chat API] Request processed successfully');
         if (lastMsg) {
-            console.log('[Chat API] Last Message Role:', lastMsg.role);
-            console.log('[Chat API] Last Message Attachments:', lastMsg.experimental_attachments?.length || 0);
+            console.log('[Chat API] lastMsg check:', {
+                role: lastMsg.role,
+                hasAttachments: !!lastMsg.experimental_attachments?.length
+            });
         }
 
         // Validate assistant access
@@ -202,16 +207,17 @@ export async function POST(request: Request) {
 
         const allMessages = [systemMessage, ...formattedMessages];
 
-        // Save last user message
-        const lastUserMessage = chatMessages
-            .filter((m: any) => m.role === 'user')
-            .pop();
-
+        // Save last user message (we save only the text part to the DB)
+        const lastUserMessage = chatMessages.filter((m: any) => m.role === 'user').pop();
         if (lastUserMessage) {
             await db.insert(messages).values({
                 chatId: chat.id,
                 role: 'user',
-                content: lastUserMessage.content,
+                content: typeof lastUserMessage.content === 'string'
+                    ? lastUserMessage.content
+                    : (Array.isArray(lastUserMessage.content)
+                        ? lastUserMessage.content.find((p: any) => p.type === 'text')?.text || ''
+                        : ''),
             });
         }
 

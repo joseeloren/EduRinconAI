@@ -118,27 +118,31 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         .filter(m => m.role === 'assistant')
         .pop();
 
-    // Handle TTS when new message arrives
+    const lastReadMessageId = useRef<string | null>(null);
+
+    // Handle TTS Logic
     useEffect(() => {
         if (!lastAssistantMessage || !synthRef.current || voices.length === 0) return;
 
-        // Logic to prevent reading old history on page load, 
-        // BUT allow reading the "Welcome Message" (which is technically history/initial).
-        const isWelcomeMessage = lastAssistantMessage.id === 'welcome-message';
-        const isNewMessage = mountedRef.current; // If we are already mounted, any change is a new message
-
-        if (!isNewMessage && !isWelcomeMessage) {
-            // It's page load, and it's NOT a welcome message -> It's just history. Don't speak.
-            mountedRef.current = true;
+        // Case 1: Welcome Message
+        // It's static, so we can read it immediately if we haven't read it yet.
+        if (lastAssistantMessage.id === 'welcome-message') {
+            if (lastReadMessageId.current !== lastAssistantMessage.id) {
+                lastReadMessageId.current = lastAssistantMessage.id;
+                // Add a small delay to ensure page interaction/focus allows audio
+                setTimeout(() => playAudio(lastAssistantMessage.content), 500);
+            }
             return;
         }
 
-        mountedRef.current = true;
+        // Case 2: Generated Messages (Streaming)
+        // Only read when streaming is finished (isLoading is false)
+        if (!isLoading && lastAssistantMessage.id !== lastReadMessageId.current) {
+            lastReadMessageId.current = lastAssistantMessage.id;
+            playAudio(lastAssistantMessage.content);
+        }
 
-        // Auto-play
-        playAudio(lastAssistantMessage.content);
-
-    }, [lastAssistantMessage, onSpeakingChange, voices]);
+    }, [lastAssistantMessage, isLoading, voices]); // Removed onSpeakingChange to avoid cycles
 
     // Scroll to bottom on new message
     useEffect(() => {

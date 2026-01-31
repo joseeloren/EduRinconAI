@@ -145,54 +145,18 @@ export async function POST(request: Request) {
                 };
             });
 
-        // 2. Prepend System Prompt (Back inside messages for maximum compatibility)
+        // 4. Prepend System Prompt
         const allMessages = [
             { role: 'system', content: assistant.systemPrompt || 'Eres un tutor AI.' },
             ...formattedMessages
         ];
 
-        // 🔍 DEBUG: Log the ENTIRE thing if it's not too huge, or a very clear summary
-        console.log('[Chat API] Final Messages to streamText:', JSON.stringify(allMessages.map(m => ({
+        // 🔍 DEBUG: Summary log
+        console.log('[Chat API] Messages summary:', JSON.stringify(allMessages.map((m: any) => ({
             role: m.role,
             contentIsArray: Array.isArray(m.content),
-            contentType: typeof m.content,
             contentLength: typeof m.content === 'string' ? m.content.length : m.content.length
         })), null, 2));
-
-        // Validate assistant access
-        const [assistant] = await db
-            .select()
-            .from(assistants)
-            .where(eq(assistants.id, assistantId))
-            .limit(1);
-
-        if (!assistant) {
-            return new Response('Assistant not found', { status: 404 });
-        }
-
-        // Check if user has explicit access
-        const [access] = await db
-            .select()
-            .from(assistantAccess)
-            .where(
-                and(
-                    eq(assistantAccess.assistantId, assistantId),
-                    eq(assistantAccess.userId, session.user.id)
-                )
-            )
-            .limit(1);
-
-        const hasAccess = canAccessAssistant(
-            session.user.role,
-            session.user.id,
-            assistant.createdById,
-            !!access,
-            assistant.isPublic === 1
-        );
-
-        if (!hasAccess) {
-            return new Response('Forbidden: No access to this assistant', { status: 403 });
-        }
 
         // Get or create chat
         let chat;

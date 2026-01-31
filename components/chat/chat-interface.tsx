@@ -121,6 +121,13 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         synthRef.current.speak(utterance);
     };
 
+    // Get the last assistant message object
+    const lastAssistantMessage = messages
+        .filter(m => m.role === 'assistant')
+        .pop();
+
+    const lastReadMessageId = useRef<string | null>(null);
+
     // Retry handler for blocked audio
     const handleRetryAudio = () => {
         if (lastAssistantMessage) {
@@ -172,6 +179,20 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
 
             {/* Messages Container */}
             <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4">
+                {audioBlocked && (
+                    <div
+                        className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 cursor-pointer hover:bg-blue-100 transition-colors"
+                        onClick={handleRetryAudio}
+                    >
+                        <div className="flex items-center">
+                            <Volume2 className="h-5 w-5 text-blue-500 mr-2" />
+                            <p className="text-sm text-blue-700 font-medium">
+                                El navegador ha bloqueado el audio automático. Haz clic aquí para activar la voz del profesor.
+                            </p>
+                        </div>
+                    </div>
+                )}
+
                 {messages.length === 0 && (
                     <div className="text-center text-gray-500 mt-8">
                         <p className="text-lg">{t('welcome')}</p>

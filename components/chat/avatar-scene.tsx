@@ -118,13 +118,20 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
 
         // Ensure it's playing
         if (!desiredAction.isRunning()) {
-            desiredAction.reset().fadeIn(1.2).play();
+            // Ensure the new action starts fresh with 0 weight, then fades in
+            desiredAction.reset().setEffectiveTimeScale(1).setEffectiveWeight(0).fadeIn(0.8).play();
+        } else {
+            // Already running but maybe fading out? Ensure it's fading back in
+            desiredAction.fadeIn(0.8).play();
         }
 
         // Crossfade others out
         Object.keys(actions).forEach(key => {
             if (key !== desiredActionName) {
-                actions[key]?.fadeOut(1.2);
+                const action = actions[key];
+                if (action && action.isRunning()) {
+                    action.fadeOut(0.8);
+                }
             }
         });
 

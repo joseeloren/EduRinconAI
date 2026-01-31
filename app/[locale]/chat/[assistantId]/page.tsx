@@ -51,6 +51,14 @@ export default async function ChatPage(props: {
             content: msg.content,
             createdAt: msg.createdAt,
         }));
+    } else {
+        // New chat: Add welcome message
+        initialMessages = [{
+            id: 'welcome-message',
+            role: 'assistant',
+            content: `Hola, soy ${assistant.name}, tu profesor virtual. ¿En qué puedo ayudarte?`,
+            createdAt: new Date(),
+        }];
     }
 
     return (

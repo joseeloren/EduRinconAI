@@ -107,6 +107,17 @@ export async function POST(request: Request) {
                     title: chatMessages[0]?.content?.slice(0, 50) || 'New Chat',
                 })
                 .returning();
+
+            // SÍ hay un mensaje de bienvenida (role='assistant') al principio, lo guardamos explícitamente
+            // para que persista en el historial (si no, desaparece al recargar).
+            const firstMsg = chatMessages[0];
+            if (firstMsg && firstMsg.role === 'assistant') {
+                await db.insert(messages).values({
+                    chatId: chat.id,
+                    role: 'assistant',
+                    content: firstMsg.content,
+                });
+            }
         }
 
         // Process chat for pure LLM response (No RAG)

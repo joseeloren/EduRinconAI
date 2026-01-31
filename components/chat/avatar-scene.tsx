@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useGLTF, useAnimations } from '@react-three/drei';
-import { AnimationClip, Object3D } from 'three';
+import { AnimationClip, Object3D, AnimationUtils } from 'three';
 
 type BoneRotation = { x: number; y: number; z: number };
 
@@ -50,24 +50,27 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
     const idleGLTFs = useGLTF(IDLE_FILES) as any[];
     const talkingGLTFs = useGLTF(TALKING_FILES) as any[];
 
-    // Extract and rename clips to be unique
+    // Extract and rename clips to be unique + TRIM T-POSE
     const idleClips = useMemo(() => {
         return idleGLTFs.flatMap((gltf, i) => {
             const clips = gltf.animations || [];
-            clips.forEach((clip: AnimationClip) => {
-                clip.name = `Idle_${i}`; // Unique name
+            return clips.map((clip: AnimationClip) => {
+                // Trim first 5 frames to avoid T-pose/Arms-down flicker
+                // subclip(source, name, startFrame, endFrame, fps)
+                const trimmed = AnimationUtils.subclip(clip, `Idle_${i}`, 5, 99999, 30);
+                return trimmed;
             });
-            return clips;
         });
     }, [idleGLTFs]);
 
     const talkingClips = useMemo(() => {
         return talkingGLTFs.flatMap((gltf, i) => {
             const clips = gltf.animations || [];
-            clips.forEach((clip: AnimationClip) => {
-                clip.name = `Talking_${i}`;
+            return clips.map((clip: AnimationClip) => {
+                // Trim first 5 frames
+                const trimmed = AnimationUtils.subclip(clip, `Talking_${i}`, 5, 99999, 30);
+                return trimmed;
             });
-            return clips;
         });
     }, [talkingGLTFs]);
 

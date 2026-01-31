@@ -56,7 +56,7 @@ export default async function ChatPage(props: {
         initialMessages = [{
             id: 'welcome-message',
             role: 'assistant',
-            content: `Hola, soy ${assistant.name}, tu profesor virtual. ¿En qué puedo ayudarte?`,
+            content: `Hola, soy Jose, tu profesor virtual. ¿En qué puedo ayudarte?`,
             createdAt: new Date(),
         }];
     }

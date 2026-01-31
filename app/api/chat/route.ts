@@ -173,10 +173,6 @@ export async function POST(request: Request) {
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
-        const isOllamaTimeout =
-            message.includes('Headers Timeout') ||
-            message.includes('HeadersTimeoutError') ||
-            message.includes('Cannot connect to API');
 
         console.error('Chat API Error Details:', {
             error,
@@ -184,9 +180,17 @@ export async function POST(request: Request) {
             stack: error instanceof Error ? error.stack : undefined,
         });
 
-        const userMessage = isOllamaTimeout
-            ? 'No se pudo conectar a Ollama. Verifica que Ollama esté corriendo y que LLM_API_BASE_URL apunte al servidor correcto (no uses localhost si Ollama está en otra máquina).'
-            : message;
+        let userMessage = 'Ha ocurrido un error inesperado en el servidor.';
+
+        if (message.includes('ECONNREFUSED')) {
+            userMessage = 'No se puede conectar con Ollama (ECONNREFUSED). Asegúrate de que esté corriendo (`ollama serve`). Si estás usando WSL/Docker, `localhost` no verá tu host Windows: configura `LLM_API_BASE_URL` en tu .env apuntando a `http://host.docker.internal:11434` o la IP local de tu PC.';
+        } else if (message.includes('Headers Timeout') || message.includes('HeadersTimeoutError')) {
+            userMessage = 'El modelo está tardando demasiado en responder (Timeout). Es posible que sea un modelo muy pesado (70b) y tu PC esté tardando en cargarlo en memoria.';
+        } else if (message.includes('Cannot connect to API')) {
+            userMessage = 'Error de conexión con la API de IA. Verifica la URL y que el servicio esté activo.';
+        } else {
+            userMessage = message;
+        }
 
         return new Response(
             JSON.stringify({

@@ -42,6 +42,32 @@ const TALKING_FILES = [
     ...Array.from({ length: 10 }, (_, i) => `M_Talking_Variations_${String(i + 1).padStart(3, '0')}.glb`)
 ].map(f => `/animations/${f}`);
 
+// Helper to manually trim start of animation (remove T-pose)
+function trimClip(clip: AnimationClip, timeToRemove: number = 0.1) {
+    clip.tracks.forEach(track => {
+        const times = track.times;
+        const values = track.values;
+        const itemSize = values.length / times.length;
+
+        const newTimes: number[] = [];
+        const newValues: number[] = [];
+
+        for (let i = 0; i < times.length; i++) {
+            if (times[i] >= timeToRemove) {
+                newTimes.push(times[i] - timeToRemove);
+                for (let k = 0; k < itemSize; k++) {
+                    newValues.push(values[i * itemSize + k]);
+                }
+            }
+        }
+
+        track.times = new Float32Array(newTimes);
+        track.values = new Float32Array(newValues);
+    });
+    clip.duration = Math.max(0, clip.duration - timeToRemove);
+    return clip;
+}
+
 function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: Avatar3DProps) {
     const group = useRef<any>(null);
     const { scene } = useGLTF(modelUrl);
@@ -56,6 +82,7 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
             const clips = gltf.animations || [];
             clips.forEach((clip: AnimationClip) => {
                 clip.name = `Idle_${i}`;
+                trimClip(clip, 0.1); // Trim 0.1s from start
             });
             return clips;
         });
@@ -66,6 +93,7 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
             const clips = gltf.animations || [];
             clips.forEach((clip: AnimationClip) => {
                 clip.name = `Talking_${i}`;
+                trimClip(clip, 0.1); // Trim 0.1s from start
             });
             return clips;
         });

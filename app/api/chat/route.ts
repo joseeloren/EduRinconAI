@@ -23,12 +23,12 @@ const getBaseURL = () => {
     return url;
 };
 
-// Timeouts para Ollama: modelos grandes (ej. deepseek-r1:32b) pueden tardar 60+ seg en responder
-const LLM_HEADERS_TIMEOUT_MS = parseInt(process.env.LLM_HEADERS_TIMEOUT_MS || '300000', 10); // 5 min
-const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '600000', 10);     // 10 min
+// Timeouts para Ollama: modelos grandes (ej. deepseek-r1:70b) pueden tardar mucho en cargar y responder
+const LLM_HEADERS_TIMEOUT_MS = parseInt(process.env.LLM_HEADERS_TIMEOUT_MS || '600000', 10); // 10 min
+const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '1200000', 10);     // 20 min
 
 const ollamaFetchAgent = new Agent({
-    connect: { timeout: 60000 },
+    connect: { timeout: 300000 }, // 5 min connect timeout
     headersTimeout: LLM_HEADERS_TIMEOUT_MS,
     bodyTimeout: LLM_BODY_TIMEOUT_MS,
 });

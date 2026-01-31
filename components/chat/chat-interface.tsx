@@ -19,13 +19,59 @@ interface ChatInterfaceProps {
 
 export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange }: ChatInterfaceProps) {
     const t = useTranslations('chat');
-    const locale = useLocale(); // Get current locale (es, en, etc)
+    const locale = useLocale();
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    // ... useChat hook ...
+    const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+        api: '/api/chat',
+        initialMessages,
+        body: {
+            assistantId,
+            chatId,
+        },
+        onError: (error) => {
+            console.error('Chat error:', error);
+            try {
+                const errorMessage = error.message;
+                try {
+                    const parsed = JSON.parse(errorMessage);
+                    if (parsed && parsed.details) {
+                        setErrorMsg(parsed.details);
+                        return;
+                    }
+                } catch (e) { }
+                setErrorMsg(errorMessage || 'Ha ocurrido un error al procesar tu solicitud.');
+            } catch (e) {
+                setErrorMsg('Ha ocurrido un error inesperado.');
+            }
+        },
+    });
 
-    // ... TTS State ...
+    // TTS Hooks & State DECLARATIONS FIRST
+    const [isSpeaking, setIsSpeaking] = useState(false);
+    const synthRef = useRef<SpeechSynthesis | null>(null);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+    const mountedRef = useRef(false);
+    const [audioBlocked, setAudioBlocked] = useState(false);
 
-    // Helper to play audio
+    // Initialize SpeechSynthesis
+    useEffect(() => {
+        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+            synthRef.current = window.speechSynthesis;
+            const loadVoices = () => {
+                const availableVoices = window.speechSynthesis.getVoices();
+                if (availableVoices.length > 0) setVoices(availableVoices);
+            };
+            loadVoices();
+            window.speechSynthesis.onvoiceschanged = loadVoices;
+            return () => {
+                window.speechSynthesis.onvoiceschanged = null;
+                if (synthRef.current) synthRef.current.cancel();
+            };
+        }
+    }, []);
+
+    // Helper to play audio (DEFINED AFTER HOOKS)
     const playAudio = (text: string) => {
         if (!synthRef.current || voices.length === 0) return;
 
@@ -35,11 +81,9 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         const cleanText = text.replace(/[*#_`]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
 
-        // Map locale to full BCP 47 tag if needed
-        const langTag = locale === 'en' ? 'en-US' : 'es-ES'; // Default to Spanish if 'es', English if 'en'
+        const langTag = locale === 'en' ? 'en-US' : 'es-ES';
         utterance.lang = langTag;
 
-        // Select best voice matching the locale
         const preferredVoice = voices.find(v => v.lang.includes(locale) && v.name.includes('Google')) ||
             voices.find(v => v.lang.includes(locale) && v.name.includes('Microsoft')) ||
             voices.find(v => v.lang.includes(locale));
@@ -59,10 +103,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             console.error('TTS Error:', e);
             setIsSpeaking(false);
             onSpeakingChange?.(false);
-
-            if (e.error === 'not-allowed') {
-                setAudioBlocked(true);
-            }
+            if (e.error === 'not-allowed') setAudioBlocked(true);
         };
 
         synthRef.current.speak(utterance);

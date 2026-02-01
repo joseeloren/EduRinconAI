@@ -67,7 +67,10 @@ export async function GET(
             .map((m) => `${m.role.toUpperCase()}: ${m.content}`)
             .join('\n\n');
 
-        const systemPrompt = `You are an educational assistant. Based on the following conversation history, generate a quiz with 5 multiple-choice questions to test the user's knowledge.
+        console.log(`[Quiz API] Generating quiz for chatId: ${chatId}`);
+        console.log(`[Quiz API] Message context length: ${chatMessages.length}`);
+
+        const systemPrompt = `You are an educational assistant. Based on the following conversation history, generate a quiz with 5 multiple-choice questions in Spanish to test the user's knowledge.
 Respond ONLY with a JSON array of objects. Each object must have:
 - question: string
 - options: string array (exactly 4 options)
@@ -77,21 +80,28 @@ Respond ONLY with a JSON array of objects. Each object must have:
 Conversation history:
 ${context}`;
 
+        console.log('[Quiz API] Sending prompt to LLM...');
         const { text } = await generateText({
             model: ollama(LLM_MODEL_NAME) as any,
             prompt: systemPrompt,
         });
 
+        console.log('[Quiz API] Raw LLM response received:', text);
+
         // Try to parse the output and ensure it's valid JSON
         try {
             const jsonStart = text.indexOf('[');
             const jsonEnd = text.lastIndexOf(']') + 1;
+            if (jsonStart === -1 || jsonEnd === 0) {
+                throw new Error('No JSON array found in response');
+            }
             const jsonStr = text.substring(jsonStart, jsonEnd);
             const quiz = JSON.parse(jsonStr);
+            console.log(`[Quiz API] Successfully generated ${quiz.length} questions.`);
             return Response.json(quiz);
         } catch (e) {
-            console.error('Failed to parse quiz JSON:', text);
-            return new Response('Failed to generate a valid quiz structural format.', { status: 500 });
+            console.error('[Quiz API] Failed to parse quiz JSON. Raw text:', text);
+            return new Response('Failed to generate a valid quiz structure. The LLM response was not valid JSON.', { status: 500 });
         }
     } catch (error) {
         console.error('[Quiz API Error]:', error);

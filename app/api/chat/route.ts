@@ -283,7 +283,11 @@ export async function POST(request: Request) {
                 },
             });
 
-            return result.toDataStreamResponse();
+            return result.toDataStreamResponse({
+                headers: {
+                    'x-chat-id': chat.id,
+                },
+            });
         } catch (streamError) {
             console.error('[Chat API] CRITICAL error in streamText:', streamError);
             console.error('[Chat API] Full messages payload causing error:', JSON.stringify(allMessages, (h, v) => (v instanceof Buffer || v instanceof Uint8Array) ? '<BINARY_DATA>' : v, 2));

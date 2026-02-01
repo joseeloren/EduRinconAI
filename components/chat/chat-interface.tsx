@@ -5,6 +5,7 @@ import { Send, FileText, Volume2, Mic, MicOff, Image as ImageIcon, X, Share2, Ch
 import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
+import { useRouter } from 'next/navigation';
 
 interface ChatInterfaceProps {
     assistantId: string;
@@ -21,6 +22,7 @@ interface ChatInterfaceProps {
 export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange, readOnly = false }: ChatInterfaceProps) {
     const t = useTranslations('chat');
     const locale = useLocale();
+    const router = useRouter();
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
     const { messages, input, handleInputChange, handleSubmit, isLoading, append, setInput } = useChat({
         api: '/api/chat',
@@ -43,6 +45,13 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                 setErrorMsg(errorMessage || 'Ha ocurrido un error al procesar tu solicitud.');
             } catch (e) {
                 setErrorMsg('Ha ocurrido un error inesperado.');
+            }
+        },
+        onResponse: (response) => {
+            const newChatId = response.headers.get('x-chat-id');
+            if (newChatId && newChatId !== chatId) {
+                console.log('[ChatInterface] New chatId received, redirecting:', newChatId);
+                router.push(`/${locale}/chat/${assistantId}?chatId=${newChatId}`);
             }
         },
     });
@@ -183,7 +192,7 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             const availableVoices = voices.filter(v => v.lang.includes(langCode));
 
             // Common male name patterns in Spanish and English (Sorted by quality preference)
-            const maleNames = ['Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'David', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo'];
+            const maleNames = ['Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'Dario', 'Elias', 'Victor', 'Pedro', 'Mateo', 'David', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo'];
 
             // Priority 1: Neural/Online/Natural MALE voices
             const premiumMaleVoice = availableVoices.find(v =>

@@ -25,7 +25,8 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
-    const [progress, setProgress] = useState<{ current: number; total: number; percentage: number } | null>(null);
+    const [activeDocId, setActiveDocId] = useState<string | null>(null);
+    const [progressMap, setProgressMap] = useState<Record<string, { current: number; total: number; percentage: number }>>({});
 
     const fetchDocuments = async () => {
         try {
@@ -85,17 +86,16 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                     try {
                         const data = JSON.parse(line);
                         if (data.type === 'start') {
-                            setProgress({
-                                current: 0,
-                                total: data.totalChunks,
-                                percentage: 0
-                            });
-                        } else if (data.type === 'progress') {
-                            setProgress({
-                                current: data.current,
-                                total: data.total,
-                                percentage: data.percentage
-                            });
+                            setActiveDocId(data.docId);
+                            setProgressMap(prev => ({
+                                ...prev,
+                                [data.docId]: { current: 0, total: data.totalChunks, percentage: 0 }
+                            }));
+                        } else if (data.type === 'progress' && activeDocId) {
+                            setProgressMap(prev => ({
+                                ...prev,
+                                [activeDocId]: { current: data.current, total: data.total, percentage: data.percentage }
+                            }));
                         } else if (data.type === 'error') {
                             throw new Error(data.message);
                         } else if (data.type === 'complete') {
@@ -116,7 +116,7 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
             toast.error(error.message || 'Error al subir el documento');
         } finally {
             setUploading(false);
-            setProgress(null);
+            setActiveDocId(null);
         }
     };
 
@@ -181,26 +181,26 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                 <>
                                     <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
                                     <p className="text-sm font-medium">
-                                        {progress
-                                            ? `Procesando: ${progress.current} de ${progress.total} fragmentos`
+                                        {activeDocId && progressMap[activeDocId]
+                                            ? `Procesando: ${progressMap[activeDocId].current} de ${progressMap[activeDocId].total} fragmentos`
                                             : 'Subiendo y analizando archivo...'}
                                     </p>
 
-                                    {progress && (
+                                    {activeDocId && progressMap[activeDocId] && (
                                         <div className="w-full max-w-xs mt-4">
                                             <div className="bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
                                                 <div
                                                     className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
-                                                    style={{ width: `${progress.percentage}%` }}
+                                                    style={{ width: `${progressMap[activeDocId].percentage}%` }}
                                                 ></div>
                                             </div>
                                             <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                                                Generando vectores de conocimiento ({progress.percentage}%)
+                                                Generando vectores de conocimiento ({progressMap[activeDocId].percentage}%)
                                             </p>
                                         </div>
                                     )}
 
-                                    {!progress && (
+                                    {!(activeDocId && progressMap[activeDocId]) && (
                                         <p className="text-xs text-muted-foreground mt-1 text-center">
                                             Extrayendo texto del archivo...
                                         </p>
@@ -257,9 +257,12 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                                         <span className="text-green-600 flex items-center gap-0.5">
                                                             <CheckCircle2 className="h-3 w-3" /> Listo
                                                         </span>
-                                                    ) : doc.status === 'processing' ? (
-                                                        <span className="text-blue-600 flex items-center gap-0.5">
-                                                            <Loader2 className="h-3 w-3 animate-spin" /> Procesando
+                                                    ) : doc.status === 'processing' || progressMap[doc.id] ? (
+                                                        <span className="text-blue-600 flex items-center gap-1">
+                                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                                            {progressMap[doc.id]
+                                                                ? `${progressMap[doc.id].current}/${progressMap[doc.id].total} fragmentos`
+                                                                : 'Procesando'}
                                                         </span>
                                                     ) : (
                                                         <span className="text-red-600 flex items-center gap-0.5">

@@ -228,7 +228,10 @@ export async function POST(request: Request) {
                     .join('\n\n---\n\n');
 
                 if (context) {
+                    console.log(`[Chat API] RAG: Found ${relevantChunks.length} relevant chunks. Similarity of top chunk: ${relevantChunks[0].similarity.toFixed(4)}`);
                     systemPrompt += `\n\n[CONTEXTO EXTRAÍDO DE TUS DOCUMENTOS DE CONOCIMIENTO]:\n${context}\n\n[INSTRUCCIÓN]: Utiliza el contexto anterior para responder a la pregunta del usuario de forma precisa. Si la información no está en el contexto, indícalo basándote en tu conocimiento general pero prioriza siempre lo que dicen tus documentos.`;
+                } else {
+                    console.log('[Chat API] RAG: No relevant context found for this query.');
                 }
             }
         } catch (ragError) {

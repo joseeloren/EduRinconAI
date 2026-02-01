@@ -69,30 +69,13 @@ export default async function ChatPage(props: {
     return (
         <div className="flex flex-col h-screen bg-gray-50">
             <Navbar user={session.user} />
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b border-gray-200 px-4 py-3">
-                <div className="flex items-center justify-between w-full px-2">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href={session.user.role === 'STUDENT' ? '/student' : '/teacher'}
-                            className="text-gray-600 hover:text-gray-900"
-                        >
-                            <ArrowLeft className="w-5 h-5" />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-semibold text-gray-900">{assistant.name}</h1>
-                            {assistant.description && (
-                                <p className="text-sm text-gray-600">{assistant.description}</p>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             <ChatView
                 assistantId={assistantId}
+                assistantName={assistant.name}
+                assistantDescription={assistant.description}
                 chatId={chatId as string}
                 initialMessages={initialMessages}
+                role={session.user.role}
             />
         </div>
     );

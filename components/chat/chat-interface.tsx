@@ -73,10 +73,6 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
     const [files, setFiles] = useState<FileList | undefined>(undefined);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Sharing State
-    const [isSharing, setIsSharing] = useState(false);
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [isCopied, setIsCopied] = useState(false);
 
     // Initialize SpeechSynthesis
     useEffect(() => {
@@ -156,24 +152,6 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         }
     };
 
-    const handleShare = async () => {
-        if (!chatId) return;
-        setIsSharing(true);
-        try {
-            await fetch(`/api/chat/${chatId}/share`, {
-                method: 'POST',
-                body: JSON.stringify({ isPublic: true }),
-            });
-            const url = `${window.location.origin}/${locale}/share/${chatId}`;
-            await navigator.clipboard.writeText(url);
-            setIsCopied(true);
-            setTimeout(() => setIsCopied(false), 2000);
-        } catch (err) {
-            console.error('Failed to share:', err);
-        } finally {
-            setIsSharing(false);
-        }
-    };
 
     // Helper to play audio (DEFINED AFTER HOOKS)
     const playAudio = (text: string) => {
@@ -373,17 +351,6 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                                 </div>
                             )}
 
-                            {/* Share button (only for the FIRST user message in non-readonly mode) */}
-                            {chatId && !readOnly && message.role === 'user' && message.id === messages.find(m => m.role === 'user')?.id && (
-                                <button
-                                    onClick={handleShare}
-                                    disabled={isSharing}
-                                    className="mt-2 text-xs flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity bg-white/10 px-2 py-1 rounded"
-                                >
-                                    {isCopied ? <Check className="w-3 h-3 text-green-300" /> : <Share2 className="w-3 h-3" />}
-                                    {isCopied ? (locale === 'en' ? 'Link copied!' : '¡Enlace copiado!') : (locale === 'en' ? 'Share chat' : 'Compartir chat')}
-                                </button>
-                            )}
 
                             {/* Replay Button for Assistant Messages */}
                             {message.role === 'assistant' && (

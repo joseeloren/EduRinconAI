@@ -70,9 +70,12 @@ export default async function SharedChatPage({
             <div className="flex-1 overflow-hidden relative">
                 <ChatView
                     assistantId={chat.assistantId}
+                    assistantName={assistant?.name || ''}
+                    assistantDescription={assistant?.description}
                     chatId={chatId}
                     initialMessages={initialMessages}
                     readOnly={true}
+                    role="STUDENT"
                 />
                 <div className="absolute inset-0 z-50 pointer-events-none flex items-end justify-center pb-20">
                     <div className="bg-blue-600 text-white px-6 py-2 rounded-full shadow-lg pointer-events-auto">

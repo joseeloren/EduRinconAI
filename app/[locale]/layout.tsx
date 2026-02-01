@@ -18,6 +18,11 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
     title: "MentorAI",
     description: "Sistema de asistentes educativos con IA",
+    icons: {
+        icon: '/logo-mentorai.png',
+        shortcut: '/logo-mentorai.png',
+        apple: '/logo-mentorai.png',
+    },
 };
 
 export default async function RootLayout({

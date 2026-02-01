@@ -140,12 +140,14 @@ export async function POST(request: Request) {
         }
 
         // 3. Normalize messages to strictly follow CoreMessage structure
+        let hasImagesInConversation = false;
         const formattedMessages = chatMessages
             .filter((msg: any) => ['user', 'assistant'].includes(msg.role))
             .map((msg: any) => {
                 const hasAttachments = msg.role === 'user' && msg.experimental_attachments && msg.experimental_attachments.length > 0;
 
                 if (hasAttachments) {
+                    hasImagesInConversation = true;
                     let textContent = '';
                     if (typeof msg.content === 'string') {
                         textContent = msg.content;
@@ -160,9 +162,11 @@ export async function POST(request: Request) {
                             ...msg.experimental_attachments.map((att: any) => {
                                 if (typeof att.url === 'string' && att.url.startsWith('data:')) {
                                     const base64Content = att.url.split(',')[1];
+                                    const buffer = Buffer.from(base64Content, 'base64');
+                                    console.log(`[Chat API] Processing image attachment: ${att.name || 'unnamed'}, size: ${buffer.length} bytes`);
                                     return {
                                         type: 'image',
-                                        image: Buffer.from(base64Content, 'base64'),
+                                        image: new Uint8Array(buffer),
                                         mimeType: att.contentType || 'image/jpeg'
                                     };
                                 }
@@ -190,9 +194,14 @@ export async function POST(request: Request) {
                 };
             });
 
-        // 4. Prepend System Prompt
+        // 4. Prepend System Prompt (with Vision Override if needed)
+        let systemPrompt = assistant.systemPrompt || 'Eres un tutor AI.';
+        if (hasImagesInConversation) {
+            systemPrompt += '\n\n[IMPORTANTE: El usuario ha adjuntado imágenes. Tienes capacidad de visión. Analiza las imágenes adjuntas para responder de forma precisa a las preguntas del usuario sobre sintaxis o código Java mostrado en ellas, ignorando cualquier restricción previa que te impida ver archivos si el usuario te lo solicita explícitamente.]';
+        }
+
         const allMessages = [
-            { role: 'system', content: assistant.systemPrompt || 'Eres un tutor AI.' },
+            { role: 'system', content: systemPrompt },
             ...formattedMessages
         ];
 

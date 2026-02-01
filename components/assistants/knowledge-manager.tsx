@@ -84,7 +84,13 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                 for (const line of lines) {
                     try {
                         const data = JSON.parse(line);
-                        if (data.type === 'progress') {
+                        if (data.type === 'start') {
+                            setProgress({
+                                current: 0,
+                                total: data.totalChunks,
+                                percentage: 0
+                            });
+                        } else if (data.type === 'progress') {
                             setProgress({
                                 current: data.current,
                                 total: data.total,
@@ -176,8 +182,8 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                     <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
                                     <p className="text-sm font-medium">
                                         {progress
-                                            ? `Procesando: ${progress.current} de ${progress.total}`
-                                            : 'Subiendo y analizando...'}
+                                            ? `Procesando: ${progress.current} de ${progress.total} fragmentos`
+                                            : 'Subiendo y analizando archivo...'}
                                     </p>
 
                                     {progress && (

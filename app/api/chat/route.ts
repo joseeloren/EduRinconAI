@@ -305,7 +305,7 @@ export async function POST(request: Request) {
             const result = await streamText({
                 model: ollama(modelName) as any, // Cast to any to bypass version mismatch
                 messages: allMessages as any,
-                temperature: (assistant.temperature || 70) / 100,
+                temperature: (assistant.temperature ?? 70) / 100,
                 maxTokens: 2000,
                 // Add explicit error handling for the stream
                 onFinish: async ({ text }) => {

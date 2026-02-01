@@ -87,7 +87,7 @@ export async function POST(request: Request) {
                 systemPrompt,
                 createdById: session.user.id,
                 isPublic: isPublic ? 1 : 0,
-                temperature: temperature || 70,
+                temperature: temperature !== undefined ? Math.round(temperature * 100) : 70,
             })
             .returning();
 

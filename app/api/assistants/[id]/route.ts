@@ -88,8 +88,8 @@ export async function PUT(
                 name,
                 description,
                 systemPrompt,
-                temperature,
-                isPublic: isPublic ? 1 : 0,
+                temperature: temperature !== undefined ? Math.round(temperature * 100) : existing.temperature,
+                isPublic: isPublic !== undefined ? (isPublic ? 1 : 0) : existing.isPublic,
                 updatedAt: new Date(),
             })
             .where(eq(assistants.id, id))

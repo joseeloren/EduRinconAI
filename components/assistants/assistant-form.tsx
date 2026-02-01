@@ -35,7 +35,7 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
     const [description, setDescription] = useState(initialData?.description || '');
     const [systemPrompt, setSystemPrompt] = useState(initialData?.systemPrompt || '');
     const [isPublic, setIsPublic] = useState(initialData?.isPublic || false);
-    const [temperature, setTemperature] = useState(initialData?.temperature || 0.7);
+    const [temperature, setTemperature] = useState(initialData?.temperature ?? 0.7);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -154,7 +154,7 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                             min={0}
                             max={1}
                             step={0.1}
-                            value={[temperature]}
+                            value={[temperature ?? 0.7]}
                             onValueChange={([value]) => setTemperature(value)}
                         />
                         <p className="text-sm text-muted-foreground">

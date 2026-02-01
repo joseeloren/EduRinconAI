@@ -142,7 +142,7 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         return () => clearTimeout(timeout);
     }, [isSpeaking, idleClips.length, talkingClips.length]);
 
-    // Playback Controller (Improved Blending)
+    // Playback Controller (Robust Blending)
     useEffect(() => {
         const desiredActionName = isSpeaking
             ? `Talking_${currentTalkingIdx}`
@@ -154,37 +154,38 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         if (!nextAction) return;
 
         // Transition settings
-        // If switching from idle to talking (or vice versa), shorter fade (0.3s) for responsiveness.
-        // If switching between idles, longer fade (1.0s) for smoothness.
         const isStateChange = lastAction && (
             (lastAction.getClip().name.startsWith('Idle') && nextAction.getClip().name.startsWith('Talking')) ||
             (lastAction.getClip().name.startsWith('Talking') && nextAction.getClip().name.startsWith('Idle'))
         );
-        const fadeDuration = isStateChange ? 0.3 : 0.8;
+
+        // Faster for speaking (0.4s), slower for idle variations (1.2s)
+        const fadeDuration = isStateChange ? 0.4 : 1.2;
 
         if (lastAction !== nextAction) {
-            // Fade in the new action
-            nextAction.reset()
-                .setEffectiveTimeScale(1)
-                .setEffectiveWeight(1)
-                .fadeIn(fadeDuration)
-                .play();
+            // 1. Prepare next action
+            nextAction.reset();
+            nextAction.setEffectiveWeight(1);
+            nextAction.setEffectiveTimeScale(1);
+            nextAction.enabled = true;
 
-            // Fade out the old one
-            if (lastAction) {
-                lastAction.fadeOut(fadeDuration);
-                // Also ensures it stops eventually
-                lastAction.enabled = true;
+            // 2. Perform transition
+            if (lastAction && lastAction.isRunning()) {
+                lastAction.crossFadeTo(nextAction, fadeDuration, true);
+            } else {
+                nextAction.fadeIn(fadeDuration);
             }
 
+            // 3. Play and track
+            nextAction.play();
             activeActionRef.current = nextAction;
         }
 
-        // Clean up other running actions just in case
+        // 4. Emergency Cleanup: Fade out any action that isn't the target
         Object.keys(actions).forEach(key => {
             const action = actions[key];
             if (action && action !== nextAction && action.isRunning()) {
-                action.fadeOut(fadeDuration);
+                action.fadeOut(fadeDuration * 1.5);
             }
         });
 

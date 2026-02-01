@@ -86,37 +86,80 @@ export async function POST(
         });
 
         const chunks = await splitter.splitText(text);
-        console.log(`[Ingestion] Split document into ${chunks.length} chunks.`);
 
-        let successCount = 0;
+        // 3. Create a ReadableStream to send progress updates
+        const stream = new ReadableStream({
+            async start(controller) {
+                const send = (data: any) => controller.enqueue(new TextEncoder().encode(JSON.stringify(data) + '\n'));
 
-        // 3. Generate embeddings and save chunks
-        for (const chunk of chunks) {
-            if (chunk.trim().length === 0) continue;
+                try {
+                    // Send initial status
+                    send({ type: 'start', totalChunks: chunks.length, docId: doc.id });
 
-            try {
-                const embedding = await generateEmbedding(chunk);
-                await db.insert(documentChunks).values({
-                    documentId: doc.id,
-                    assistantId,
-                    content: chunk,
-                    embedding,
-                });
-                successCount++;
-            } catch (embedError) {
-                console.error(`[Ingestion] Embedding error for chunk: ${chunk.substring(0, 50)}...`, embedError);
+                    let successCount = 0;
+                    let completedCount = 0;
+                    const concurrencyLimit = 3;
+                    const queue = [...chunks.entries()]; // [index, chunk]
+
+                    // Worker function
+                    const worker = async () => {
+                        while (queue.length > 0) {
+                            const item = queue.shift();
+                            if (!item) break;
+                            const [index, chunk] = item;
+
+                            if (chunk.trim().length > 0) {
+                                try {
+                                    const embedding = await generateEmbedding(chunk);
+                                    await db.insert(documentChunks).values({
+                                        documentId: doc.id,
+                                        assistantId,
+                                        content: chunk,
+                                        embedding,
+                                    });
+                                    successCount++;
+                                } catch (embedError) {
+                                    console.error(`[Ingestion] Embedding error for chunk ${index}:`, embedError);
+                                }
+                            }
+
+                            completedCount++;
+                            // Send progress update
+                            send({
+                                type: 'progress',
+                                current: completedCount,
+                                total: chunks.length,
+                                percentage: Math.round((completedCount / chunks.length) * 100)
+                            });
+                        }
+                    };
+
+                    // Start workers
+                    await Promise.all(Array(concurrencyLimit).fill(null).map(worker));
+
+                    // Update final status
+                    await db
+                        .update(assistantDocuments)
+                        .set({ status: successCount > 0 ? 'ready' : 'error' })
+                        .where(eq(assistantDocuments.id, doc.id));
+
+                    send({ type: 'complete', success: successCount > 0, chunksCreated: successCount });
+                    controller.close();
+                } catch (error: any) {
+                    console.error('[Ingestion Stream Error]:', error);
+                    send({ type: 'error', message: error.message });
+                    controller.close();
+                }
             }
-        }
+        });
 
-        console.log(`[Ingestion] Successfully stored ${successCount}/${chunks.length} chunks for doc: ${file.name}`);
-
-        // 4. Update status based on success
-        await db
-            .update(assistantDocuments)
-            .set({ status: successCount > 0 ? 'ready' : 'error' })
-            .where(eq(assistantDocuments.id, doc.id));
-
-        return Response.json({ success: successCount > 0, document: doc, chunksCreated: successCount });
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'application/x-ndjson',
+                'Cache-Control': 'no-cache',
+                'Connection': 'keep-alive',
+            },
+        });
     } catch (error) {
         console.error('Document ingestion error:', error);
         return Response.json({ error: 'Failed to process document' }, { status: 500 });

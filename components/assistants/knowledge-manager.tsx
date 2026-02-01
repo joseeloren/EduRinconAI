@@ -25,6 +25,7 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [progress, setProgress] = useState<{ current: number; total: number; percentage: number } | null>(null);
 
     const fetchDocuments = async () => {
         try {
@@ -63,12 +64,53 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                 throw new Error(data.error || 'Failed to upload document');
             }
 
-            toast.success(`Documento "${file.name}" subido correctamente`);
+            // Handle stream
+            const reader = res.body?.getReader();
+            if (!reader) throw new Error('No reader available');
+
+            const decoder = new TextDecoder();
+            let finished = false;
+
+            while (!finished) {
+                const { value, done } = await reader.read();
+                if (done) {
+                    finished = true;
+                    break;
+                }
+
+                const chunk = decoder.decode(value, { stream: true });
+                const lines = chunk.split('\n').filter(l => l.trim());
+
+                for (const line of lines) {
+                    try {
+                        const data = JSON.parse(line);
+                        if (data.type === 'progress') {
+                            setProgress({
+                                current: data.current,
+                                total: data.total,
+                                percentage: data.percentage
+                            });
+                        } else if (data.type === 'error') {
+                            throw new Error(data.message);
+                        } else if (data.type === 'complete') {
+                            if (data.success) {
+                                toast.success(`Documento "${file.name}" procesado correctamente (${data.chunksCreated} fragmentos)`);
+                            } else {
+                                toast.error('El documento se subió pero no se pudieron generar fragmentos');
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing stream line:', e);
+                    }
+                }
+            }
+
             fetchDocuments();
         } catch (error: any) {
             toast.error(error.message || 'Error al subir el documento');
         } finally {
             setUploading(false);
+            setProgress(null);
         }
     };
 
@@ -132,8 +174,31 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                             {uploading ? (
                                 <>
                                     <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
-                                    <p className="text-sm font-medium">Procesando documento...</p>
-                                    <p className="text-xs text-muted-foreground mt-1">Extrayendo texto y generando vectores de conocimiento.</p>
+                                    <p className="text-sm font-medium">
+                                        {progress
+                                            ? `Procesando: ${progress.current} de ${progress.total}`
+                                            : 'Subiendo y analizando...'}
+                                    </p>
+
+                                    {progress && (
+                                        <div className="w-full max-w-xs mt-4">
+                                            <div className="bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                                                <div
+                                                    className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                                                    style={{ width: `${progress.percentage}%` }}
+                                                ></div>
+                                            </div>
+                                            <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                                                Generando vectores de conocimiento ({progress.percentage}%)
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {!progress && (
+                                        <p className="text-xs text-muted-foreground mt-1 text-center">
+                                            Extrayendo texto del archivo...
+                                        </p>
+                                    )}
                                 </>
                             ) : (
                                 <>

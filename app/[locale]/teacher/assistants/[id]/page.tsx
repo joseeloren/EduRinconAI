@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AssistantForm } from '@/components/assistants/assistant-form';
 import { StudentAssignment } from '@/components/assistants/student-assignment';
+import { KnowledgeManager } from '@/components/assistants/knowledge-manager';
 
 import type { AssistantFormData } from '@/components/assistants/assistant-form';
 import { Button } from '@/components/ui/button';
@@ -132,8 +133,9 @@ export default async function AssistantManagementPage({ params }: PageProps) {
 
                 {/* Tabs */}
                 <Tabs defaultValue="info" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="info">{t('tabInfo')}</TabsTrigger>
+                        <TabsTrigger value="knowledge">{t('tabDocuments')}</TabsTrigger>
                         <TabsTrigger value="students">{t('tabStudents')}</TabsTrigger>
                     </TabsList>
 
@@ -153,9 +155,10 @@ export default async function AssistantManagementPage({ params }: PageProps) {
                                 isEditing
                             />
                         </div>
+                    </TabsContent>                    {/* Knowledge Tab */}
+                    <TabsContent value="knowledge">
+                        <KnowledgeManager assistantId={id} />
                     </TabsContent>
-
-
 
                     {/* Students Tab */}
                     <TabsContent value="students">

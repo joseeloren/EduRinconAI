@@ -78,7 +78,7 @@ Conversation history:
 ${context}`;
 
         const { text } = await generateText({
-            model: ollama(LLM_MODEL_NAME),
+            model: ollama(LLM_MODEL_NAME) as any,
             prompt: systemPrompt,
         });
 

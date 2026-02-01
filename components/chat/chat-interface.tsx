@@ -153,35 +153,33 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
 
         const langTag = locale === 'en' ? 'en-US' : 'es-ES';
 
-        // Helper to find the best voice based on quality keywords
+        // Helper to find the best voice based on quality keywords and male preference
         const getBestVoice = (langCode: string) => {
             const availableVoices = voices.filter(v => v.lang.includes(langCode));
 
-            // Priority 1: Neural/Online/Natural voices (The best ones)
+            // Common male name patterns in Spanish and English
+            const maleNames = ['David', 'Mark', 'Male', 'Alvaro', 'Jorge', 'Enrique', 'Julian', 'Pablo', 'Diego', 'Manuel', 'Guy', 'James', 'Andrew'];
+
+            // Priority 1: Neural/Online/Natural MALE voices
+            const premiumMaleVoice = availableVoices.find(v =>
+                (v.name.includes('Online') || v.name.includes('Neural') || v.name.includes('Natural')) &&
+                maleNames.some(name => v.name.includes(name))
+            );
+            if (premiumMaleVoice) return premiumMaleVoice;
+
+            // Priority 2: Any MALE voice
+            const anyMaleVoice = availableVoices.find(v =>
+                maleNames.some(name => v.name.includes(name))
+            );
+            if (anyMaleVoice) return anyMaleVoice;
+
+            // Priority 3: Any Neural/Online voice (if no male voice found)
             const premiumVoice = availableVoices.find(v =>
-                v.name.includes('Online') ||
-                v.name.includes('Neural') ||
-                v.name.includes('Natural') ||
-                v.name.includes('Premium')
+                v.name.includes('Online') || v.name.includes('Neural') || v.name.includes('Natural')
             );
             if (premiumVoice) return premiumVoice;
 
-            // Priority 2: Google/Microsoft specifically (Usually better than system defaults)
-            const brandVoice = availableVoices.find(v =>
-                v.name.includes('Google') ||
-                v.name.includes('Microsoft')
-            );
-            if (brandVoice) return brandVoice;
-
-            // Priority 3: Gender preference if specified (English male target)
-            if (langCode === 'en') {
-                const maleVoice = availableVoices.find(v =>
-                    v.name.includes('David') || v.name.includes('Mark') || v.name.includes('Male')
-                );
-                if (maleVoice) return maleVoice;
-            }
-
-            // Priority 4: Any voice matching the language
+            // Priority 4: Any matching language
             return availableVoices[0];
         };
 

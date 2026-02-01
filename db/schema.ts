@@ -90,6 +90,27 @@ export const messages = pgTable('messages', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Assistant Documents Table
+export const assistantDocuments = pgTable('assistant_documents', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    assistantId: uuid('assistant_id').notNull().references(() => assistants.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    type: varchar('type', { length: 50 }).notNull(), // 'pdf', 'docx', 'txt'
+    size: integer('size'),
+    status: varchar('status', { length: 20 }).default('processing').notNull(), // 'processing', 'ready', 'error'
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Document Chunks Table (Vector Store)
+export const documentChunks = pgTable('document_chunks', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    documentId: uuid('document_id').notNull().references(() => assistantDocuments.id, { onDelete: 'cascade' }),
+    assistantId: uuid('assistant_id').notNull().references(() => assistants.id, { onDelete: 'cascade' }),
+    content: text('content').notNull(),
+    embedding: vector('embedding', { dimensions: 768 }), // nomic-embed-text has 768 dims
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
     accounts: many(accounts),
@@ -122,6 +143,26 @@ export const assistantsRelations = relations(assistants, ({ one, many }) => ({
     }),
     assignments: many(assistantAccess),
     chats: many(chats),
+    documents: many(assistantDocuments),
+}));
+
+export const assistantDocumentsRelations = relations(assistantDocuments, ({ one, many }) => ({
+    assistant: one(assistants, {
+        fields: [assistantDocuments.assistantId],
+        references: [assistants.id],
+    }),
+    chunks: many(documentChunks),
+}));
+
+export const documentChunksRelations = relations(documentChunks, ({ one }) => ({
+    document: one(assistantDocuments, {
+        fields: [documentChunks.documentId],
+        references: [assistantDocuments.id],
+    }),
+    assistant: one(assistants, {
+        fields: [documentChunks.assistantId],
+        references: [assistants.id],
+    }),
 }));
 
 export const assistantAccessRelations = relations(assistantAccess, ({ one }) => ({
@@ -169,3 +210,7 @@ export type Chat = typeof chats.$inferSelect;
 export type NewChat = typeof chats.$inferInsert;
 export type Message = typeof messages.$inferSelect;
 export type NewMessage = typeof messages.$inferInsert;
+export type AssistantDocument = typeof assistantDocuments.$inferSelect;
+export type NewAssistantDocument = typeof assistantDocuments.$inferInsert;
+export type DocumentChunk = typeof documentChunks.$inferSelect;
+export type NewDocumentChunk = typeof documentChunks.$inferInsert;

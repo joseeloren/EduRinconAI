@@ -61,8 +61,11 @@ export async function POST(
         }
 
         if (!text || text.trim().length < 10) {
+            console.error(`[Ingestion] Text extraction failed or too short. Length: ${text?.length}`);
             return Response.json({ error: 'Document too short or unreadable' }, { status: 400 });
         }
+
+        console.log(`[Ingestion] Successfully extracted ${text.length} characters from ${file.name}`);
 
         // 1. Save document metadata
         const [doc] = await db
@@ -83,9 +86,11 @@ export async function POST(
         });
 
         const chunks = await splitter.splitText(text);
+        console.log(`[Ingestion] Split document into ${chunks.length} chunks.`);
+
+        let successCount = 0;
 
         // 3. Generate embeddings and save chunks
-        // We do this sequentially to avoid overloading the local Ollama instance
         for (const chunk of chunks) {
             if (chunk.trim().length === 0) continue;
 
@@ -97,20 +102,21 @@ export async function POST(
                     content: chunk,
                     embedding,
                 });
+                successCount++;
             } catch (embedError) {
-                console.error(`Embedding error for chunk: ${chunk.substring(0, 50)}...`, embedError);
-                // Continue with other chunks or fail? 
-                // Let's mark the doc as error if it fails significantly.
+                console.error(`[Ingestion] Embedding error for chunk: ${chunk.substring(0, 50)}...`, embedError);
             }
         }
 
-        // 4. Update status to ready
+        console.log(`[Ingestion] Successfully stored ${successCount}/${chunks.length} chunks for doc: ${file.name}`);
+
+        // 4. Update status based on success
         await db
             .update(assistantDocuments)
-            .set({ status: 'ready' })
+            .set({ status: successCount > 0 ? 'ready' : 'error' })
             .where(eq(assistantDocuments.id, doc.id));
 
-        return Response.json({ success: true, document: doc });
+        return Response.json({ success: successCount > 0, document: doc, chunksCreated: successCount });
     } catch (error) {
         console.error('Document ingestion error:', error);
         return Response.json({ error: 'Failed to process document' }, { status: 500 });

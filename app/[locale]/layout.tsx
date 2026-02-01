@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "EduRinconAI",
+    title: "MentorAI",
     description: "Sistema de asistentes educativos con IA",
 };
 

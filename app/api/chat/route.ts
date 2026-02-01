@@ -166,7 +166,7 @@ export async function POST(request: Request) {
                                     console.log(`[Chat API] Processing image attachment: ${att.name || 'unnamed'}, size: ${buffer.length} bytes`);
                                     return {
                                         type: 'image',
-                                        image: new Uint8Array(buffer),
+                                        image: base64Content, // Switching to raw base64 string per user's Ollama example
                                         mimeType: att.contentType || 'image/jpeg'
                                     };
                                 }

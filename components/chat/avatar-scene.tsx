@@ -174,7 +174,43 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
 
     useFrame((state) => {
         if (!group.current) return;
-        // ... debug logic removed for clarity ... 
+
+        // Lip-sync logic
+        const head = scene.getObjectByName('Wolf3D_Head') as any;
+        const teeth = scene.getObjectByName('Wolf3D_Teeth') as any;
+
+        if (head && head.morphTargetInfluences) {
+            // Index of morph targets in RPM models:
+            // 0: mouthOpen, 1: viseme_sil, 2: viseme_PP, 3: viseme_FF, 4: viseme_TH, 5: viseme_DD, 
+            // 6: viseme_kk, 7: viseme_CH, 8: viseme_SS, 9: viseme_nn, 10: viseme_RR, 11: viseme_aa, 
+            // 12: viseme_E, 13: viseme_I, 14: viseme_O, 15: viseme_U
+
+            if (isSpeaking) {
+                // Procedural "talking" movement
+                const time = state.clock.getElapsedTime();
+
+                // Main mouth opening (sin wave + some noise)
+                const mouthOpen = 0.2 + Math.sin(time * 15) * 0.4 + Math.random() * 0.1;
+                head.morphTargetInfluences[0] = Math.max(0, mouthOpen);
+                if (teeth && teeth.morphTargetInfluences) teeth.morphTargetInfluences[0] = Math.max(0, mouthOpen);
+
+                // Add some viseme variety
+                const visemeAA = 0.1 + Math.sin(time * 12) * 0.2;
+                const visemeOO = 0.1 + Math.cos(time * 10) * 0.2;
+
+                head.morphTargetInfluences[11] = Math.max(0, visemeAA); // AA
+                head.morphTargetInfluences[14] = Math.max(0, visemeOO); // O
+            } else {
+                // Smoothly return to neutral
+                head.morphTargetInfluences[0] = Math.max(0, head.morphTargetInfluences[0] - 0.1);
+                head.morphTargetInfluences[11] = Math.max(0, head.morphTargetInfluences[11] - 0.1);
+                head.morphTargetInfluences[14] = Math.max(0, head.morphTargetInfluences[14] - 0.1);
+
+                if (teeth && teeth.morphTargetInfluences) {
+                    teeth.morphTargetInfluences[0] = Math.max(0, teeth.morphTargetInfluences[0] - 0.1);
+                }
+            }
+        }
     });
 
     return (

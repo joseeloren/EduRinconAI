@@ -223,15 +223,15 @@ export async function POST(request: Request) {
                     .limit(5);
 
                 const context = relevantChunks
-                    .filter(c => c.similarity > 0.4) // Minimum similarity threshold
+                    .filter(c => c.similarity > 0.2) // Lower threshold to be more permissive
                     .map(c => c.content)
                     .join('\n\n---\n\n');
 
                 if (context) {
-                    console.log(`[Chat API] RAG: Found ${relevantChunks.length} relevant chunks. Similarity of top chunk: ${relevantChunks[0].similarity.toFixed(4)}`);
+                    console.log(`[Chat API] RAG: Found ${relevantChunks.length} chunks. Scores: ${relevantChunks.map(c => c.similarity.toFixed(4)).join(', ')}`);
                     systemPrompt += `\n\n[CONTEXTO EXTRAÍDO DE TUS DOCUMENTOS DE CONOCIMIENTO]:\n${context}\n\n[INSTRUCCIÓN]: Utiliza el contexto anterior para responder a la pregunta del usuario de forma precisa. Si la información no está en el contexto, indícalo basándote en tu conocimiento general pero prioriza siempre lo que dicen tus documentos.`;
                 } else {
-                    console.log('[Chat API] RAG: No relevant context found for this query.');
+                    console.log(`[Chat API] RAG: No chunks exceeded threshold. Top score: ${relevantChunks[0]?.similarity.toFixed(4) || 'N/A'}`);
                 }
             }
         } catch (ragError) {

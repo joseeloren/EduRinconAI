@@ -182,8 +182,8 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         const getBestVoice = (langCode: string) => {
             const availableVoices = voices.filter(v => v.lang.includes(langCode));
 
-            // Common male name patterns in Spanish and English
-            const maleNames = ['David', 'Mark', 'Male', 'Alvaro', 'Jorge', 'Enrique', 'Julian', 'Pablo', 'Diego', 'Manuel', 'Guy', 'James', 'Andrew'];
+            // Common male name patterns in Spanish and English (Sorted by quality preference)
+            const maleNames = ['Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'David', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo'];
 
             // Priority 1: Neural/Online/Natural MALE voices
             const premiumMaleVoice = availableVoices.find(v =>
@@ -364,8 +364,8 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                                 </div>
                             )}
 
-                            {/* Share button (only for user messages in non-readonly mode) */}
-                            {chatId && !readOnly && message.role === 'user' && message === messages[0] && (
+                            {/* Share button (only for the FIRST user message in non-readonly mode) */}
+                            {chatId && !readOnly && message.role === 'user' && message.id === messages.find(m => m.role === 'user')?.id && (
                                 <button
                                     onClick={handleShare}
                                     disabled={isSharing}

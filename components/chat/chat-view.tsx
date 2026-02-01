@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { ChatInterface } from './chat-interface';
 import { Avatar3DWrapper } from './avatar-scene';

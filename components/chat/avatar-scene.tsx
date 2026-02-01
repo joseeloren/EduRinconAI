@@ -163,26 +163,28 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         const fadeDuration = isStateChange ? 0.3 : 0.8;
 
         if (lastAction !== nextAction) {
-            nextAction.reset();
-            nextAction.setEffectiveTimeScale(1);
-            nextAction.setEffectiveWeight(1);
-            nextAction.fadeIn(fadeDuration);
-            nextAction.play();
+            // Fade in the new action
+            nextAction.reset()
+                .setEffectiveTimeScale(1)
+                .setEffectiveWeight(1)
+                .fadeIn(fadeDuration)
+                .play();
 
+            // Fade out the old one
             if (lastAction) {
-                lastAction.crossFadeTo(nextAction, fadeDuration, true);
+                lastAction.fadeOut(fadeDuration);
+                // Also ensures it stops eventually
+                lastAction.enabled = true;
             }
 
             activeActionRef.current = nextAction;
         }
 
-        // Safety: Ensure no other actions are sticking around with weight
+        // Clean up other running actions just in case
         Object.keys(actions).forEach(key => {
-            if (key !== desiredActionName) {
-                const action = actions[key];
-                if (action && action.isRunning() && action !== lastAction) {
-                    action.fadeOut(fadeDuration);
-                }
+            const action = actions[key];
+            if (action && action !== nextAction && action.isRunning()) {
+                action.fadeOut(fadeDuration);
             }
         });
 

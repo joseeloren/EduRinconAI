@@ -159,6 +159,8 @@ export async function POST(
                 'Content-Type': 'application/x-ndjson',
                 'Cache-Control': 'no-cache',
                 'Connection': 'keep-alive',
+                'X-Accel-Buffering': 'no',
+                'Content-Encoding': 'none',
             },
         });
     } catch (error) {

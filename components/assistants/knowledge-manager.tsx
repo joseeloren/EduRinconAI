@@ -81,6 +81,7 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                 }
 
                 const chunk = decoder.decode(value, { stream: true });
+                console.log(`[Stream] Raw chunk:`, chunk);
                 const content = partialLine + chunk;
                 const lines = content.split('\n');
 
@@ -91,24 +92,27 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                     if (!line.trim()) continue;
                     try {
                         const data = JSON.parse(line);
+                        console.log(`[Stream] Parsed data:`, data);
                         if (data.type === 'start') {
                             setActiveDocId(data.docId);
                             setProgressMap(prev => ({
                                 ...prev,
                                 [data.docId]: { current: 0, total: data.totalChunks, percentage: 0 }
                             }));
-                            // Fetch early to show the doc in the list while processing
-                            fetchDocuments();
-                        } else if (data.type === 'progress' && data.docId || activeDocId) {
+                            // Fetch slightly later to ensure DB consistency
+                            setTimeout(fetchDocuments, 500);
+                        } else if (data.type === 'progress') {
                             const targetId = data.docId || activeDocId;
-                            setProgressMap(prev => ({
-                                ...prev,
-                                [targetId!]: {
-                                    current: data.current,
-                                    total: data.total,
-                                    percentage: data.percentage
-                                }
-                            }));
+                            if (targetId) {
+                                setProgressMap(prev => ({
+                                    ...prev,
+                                    [targetId]: {
+                                        current: data.current,
+                                        total: data.total,
+                                        percentage: data.percentage
+                                    }
+                                }));
+                            }
                         } else if (data.type === 'error') {
                             throw new Error(data.message);
                         } else if (data.type === 'complete') {

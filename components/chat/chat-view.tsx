@@ -7,9 +7,10 @@ interface ChatViewProps {
     assistantId: string;
     chatId?: string;
     initialMessages?: any[];
+    readOnly?: boolean;
 }
 
-export function ChatView({ assistantId, chatId, initialMessages }: ChatViewProps) {
+export function ChatView({ assistantId, chatId, initialMessages, readOnly = false }: ChatViewProps) {
     const [isSpeaking, setIsSpeaking] = useState(false);
 
     return (
@@ -20,6 +21,7 @@ export function ChatView({ assistantId, chatId, initialMessages }: ChatViewProps
                     chatId={chatId}
                     initialMessages={initialMessages}
                     onSpeakingChange={setIsSpeaking}
+                    readOnly={readOnly}
                 />
             </main>
 

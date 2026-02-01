@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from 'ai/react';
-import { Send, FileText, Volume2, Mic, MicOff, Image as ImageIcon, X } from 'lucide-react';
+import { Send, FileText, Volume2, Mic, MicOff, Image as ImageIcon, X, Share2, Check, Copy } from 'lucide-react';
 import { MarkdownRenderer } from './markdown-renderer';
 import { useRef, useState, useEffect } from 'react';
 import { useTranslations, useLocale } from 'next-intl';
@@ -15,9 +15,10 @@ interface ChatInterfaceProps {
         content: string;
     }>;
     onSpeakingChange?: (isSpeaking: boolean) => void;
+    readOnly?: boolean;
 }
 
-export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange }: ChatInterfaceProps) {
+export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpeakingChange, readOnly = false }: ChatInterfaceProps) {
     const t = useTranslations('chat');
     const locale = useLocale();
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -62,6 +63,11 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
     // Vision / Attachments State
     const [files, setFiles] = useState<FileList | undefined>(undefined);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Sharing State
+    const [isSharing, setIsSharing] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [isCopied, setIsCopied] = useState(false);
 
     // Initialize SpeechSynthesis
     useEffect(() => {
@@ -138,6 +144,25 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         setFiles(undefined);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
+        }
+    };
+
+    const handleShare = async () => {
+        if (!chatId) return;
+        setIsSharing(true);
+        try {
+            await fetch(`/api/chat/${chatId}/share`, {
+                method: 'POST',
+                body: JSON.stringify({ isPublic: true }),
+            });
+            const url = `${window.location.origin}/${locale}/share/${chatId}`;
+            await navigator.clipboard.writeText(url);
+            setIsCopied(true);
+            setTimeout(() => setIsCopied(false), 2000);
+        } catch (err) {
+            console.error('Failed to share:', err);
+        } finally {
+            setIsSharing(false);
         }
     };
 
@@ -339,6 +364,18 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                                 </div>
                             )}
 
+                            {/* Share button (only for user messages in non-readonly mode) */}
+                            {chatId && !readOnly && message.role === 'user' && message === messages[0] && (
+                                <button
+                                    onClick={handleShare}
+                                    disabled={isSharing}
+                                    className="mt-2 text-xs flex items-center gap-1 opacity-70 hover:opacity-100 transition-opacity bg-white/10 px-2 py-1 rounded"
+                                >
+                                    {isCopied ? <Check className="w-3 h-3 text-green-300" /> : <Share2 className="w-3 h-3" />}
+                                    {isCopied ? (locale === 'en' ? 'Link copied!' : '¡Enlace copiado!') : (locale === 'en' ? 'Share chat' : 'Compartir chat')}
+                                </button>
+                            )}
+
                             {/* Replay Button for Assistant Messages */}
                             {message.role === 'assistant' && (
                                 <div className="mt-1 flex justify-end">
@@ -427,87 +464,89 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                     </div>
                 </div>
 
-                <form
-                    onSubmit={async (event) => {
-                        event.preventDefault();
-                        const attachments = files ? Array.from(files) : [];
+                {!readOnly && (
+                    <form
+                        onSubmit={async (event) => {
+                            event.preventDefault();
+                            const attachments = files ? Array.from(files) : [];
 
-                        if (attachments.length > 0 && !input.trim()) {
-                            setErrorMsg(t('image_requires_text'));
-                            return;
-                        }
+                            if (attachments.length > 0 && !input.trim()) {
+                                setErrorMsg(t('image_requires_text'));
+                                return;
+                            }
 
-                        console.log('[Chat Client] Submitting form. Attachments length:', attachments.length);
+                            console.log('[Chat Client] Submitting form. Attachments length:', attachments.length);
 
-                        // Convert files to Base64 to ensure they are sent correctly in the JSON payload
-                        const attachmentsData = await Promise.all(
-                            attachments.map(async (file) => {
-                                return new Promise<any>((resolve) => {
-                                    const reader = new FileReader();
-                                    reader.onloadend = () => resolve({
-                                        name: file.name,
-                                        contentType: file.type,
-                                        url: reader.result as string
+                            // Convert files to Base64 to ensure they are sent correctly in the JSON payload
+                            const attachmentsData = await Promise.all(
+                                attachments.map(async (file) => {
+                                    return new Promise<any>((resolve) => {
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => resolve({
+                                            name: file.name,
+                                            contentType: file.type,
+                                            url: reader.result as string
+                                        });
+                                        reader.readAsDataURL(file);
                                     });
-                                    reader.readAsDataURL(file);
-                                });
-                            })
-                        );
+                                })
+                            );
 
-                        handleSubmit(event, {
-                            experimental_attachments: attachmentsData
-                        });
-                        console.log('[Chat Client] handleSubmit called with Base64 attachments');
+                            handleSubmit(event, {
+                                experimental_attachments: attachmentsData
+                            });
+                            console.log('[Chat Client] handleSubmit called with Base64 attachments');
 
-                        setFiles(undefined);
-                        if (fileInputRef.current) fileInputRef.current.value = '';
-                    }}
-                    className="flex gap-2"
-                >
-                    <input
-                        type="file"
-                        ref={fileInputRef}
-                        onChange={handleFileChange}
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                    />
-
-                    <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all"
-                        title="Subir imagen"
+                            setFiles(undefined);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                        }}
+                        className="flex gap-2"
                     >
-                        <ImageIcon className="w-5 h-5" />
-                    </button>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                        />
 
-                    <button
-                        type="button"
-                        onClick={toggleListening}
-                        className={`p-2 rounded-full transition-all ${isListening
-                            ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400'
-                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-                        title={isListening ? "Detener" : "Dictar"}
-                    >
-                        {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-                    </button>
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="p-2 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all"
+                            title="Subir imagen"
+                        >
+                            <ImageIcon className="w-5 h-5" />
+                        </button>
 
-                    <input
-                        value={input}
-                        onChange={handleInputChange}
-                        placeholder={isListening ? (locale === 'en' ? 'Listening...' : 'Escuchando...') : t('placeholder')}
-                        disabled={isLoading}
-                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
-                    />
-                    <button
-                        type="submit"
-                        disabled={isLoading || (!input.trim() && (!files || files.length === 0))}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                        <Send className="w-4 h-4" />
-                    </button>
-                </form>
+                        <button
+                            type="button"
+                            onClick={toggleListening}
+                            className={`p-2 rounded-full transition-all ${isListening
+                                ? 'bg-red-100 text-red-600 animate-pulse ring-2 ring-red-400'
+                                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
+                            title={isListening ? "Detener" : "Dictar"}
+                        >
+                            {isListening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                        </button>
+
+                        <input
+                            value={input}
+                            onChange={handleInputChange}
+                            placeholder={isListening ? (locale === 'en' ? 'Listening...' : 'Escuchando...') : t('placeholder')}
+                            disabled={isLoading}
+                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+                        />
+                        <button
+                            type="submit"
+                            disabled={isLoading || (!input.trim() && (!files || files.length === 0))}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                            <Send className="w-4 h-4" />
+                        </button>
+                    </form>
+                )}
             </div>
         </div>
     );

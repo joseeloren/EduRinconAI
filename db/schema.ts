@@ -75,6 +75,7 @@ export const chats = pgTable('chats', {
     userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
     assistantId: uuid('assistant_id').notNull().references(() => assistants.id, { onDelete: 'cascade' }),
     title: varchar('title', { length: 255 }).default('New Chat').notNull(),
+    isPublic: integer('is_public').default(0).notNull(), // 0 = private, 1 = public
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

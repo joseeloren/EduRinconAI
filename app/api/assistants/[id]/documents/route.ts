@@ -127,6 +127,7 @@ export async function POST(
                             // Send progress update
                             send({
                                 type: 'progress',
+                                docId: doc.id,
                                 current: completedCount,
                                 total: chunks.length,
                                 percentage: Math.round((completedCount / chunks.length) * 100)

@@ -115,6 +115,9 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
     const [currentIdleIdx, setCurrentIdleIdx] = useState(0);
     const [currentTalkingIdx, setCurrentTalkingIdx] = useState(0);
 
+    // Track the active action to cross-fade from it
+    const activeActionRef = useRef<any>(null);
+
     // Randomizer effect
     useEffect(() => {
         let timeout: NodeJS.Timeout;
@@ -125,11 +128,9 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
 
             timeout = setTimeout(() => {
                 if (isSpeaking) {
-                    // Switch talking anim
                     const next = Math.floor(Math.random() * talkingClips.length);
                     setCurrentTalkingIdx(next);
                 } else {
-                    // Switch idle anim
                     const next = Math.floor(Math.random() * idleClips.length);
                     setCurrentIdleIdx(next);
                 }
@@ -141,31 +142,46 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         return () => clearTimeout(timeout);
     }, [isSpeaking, idleClips.length, talkingClips.length]);
 
-    // Playback Controller
+    // Playback Controller (Improved Blending)
     useEffect(() => {
-        // Fade out everything that isn't current
         const desiredActionName = isSpeaking
             ? `Talking_${currentTalkingIdx}`
             : `Idle_${currentIdleIdx}`;
 
-        const desiredAction = actions[desiredActionName];
+        const nextAction = actions[desiredActionName];
+        const lastAction = activeActionRef.current;
 
-        // If track missing, fallback
-        if (!desiredAction) return;
+        if (!nextAction) return;
 
-        // Ensure it's playing
-        if (!desiredAction.isRunning()) {
-            desiredAction.reset().fadeIn(0.5).play();
-        } else {
-            desiredAction.fadeIn(0.5).play();
+        // Transition settings
+        // If switching from idle to talking (or vice versa), shorter fade (0.3s) for responsiveness.
+        // If switching between idles, longer fade (1.0s) for smoothness.
+        const isStateChange = lastAction && (
+            (lastAction.getClip().name.startsWith('Idle') && nextAction.getClip().name.startsWith('Talking')) ||
+            (lastAction.getClip().name.startsWith('Talking') && nextAction.getClip().name.startsWith('Idle'))
+        );
+        const fadeDuration = isStateChange ? 0.3 : 0.8;
+
+        if (lastAction !== nextAction) {
+            nextAction.reset();
+            nextAction.setEffectiveTimeScale(1);
+            nextAction.setEffectiveWeight(1);
+            nextAction.fadeIn(fadeDuration);
+            nextAction.play();
+
+            if (lastAction) {
+                lastAction.crossFadeTo(nextAction, fadeDuration, true);
+            }
+
+            activeActionRef.current = nextAction;
         }
 
-        // Crossfade others out
+        // Safety: Ensure no other actions are sticking around with weight
         Object.keys(actions).forEach(key => {
             if (key !== desiredActionName) {
                 const action = actions[key];
-                if (action && action.isRunning()) {
-                    action.fadeOut(0.5);
+                if (action && action.isRunning() && action !== lastAction) {
+                    action.fadeOut(fadeDuration);
                 }
             }
         });

@@ -71,6 +71,7 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
 
             const decoder = new TextDecoder();
             let finished = false;
+            let partialLine = '';
 
             while (!finished) {
                 const { value, done } = await reader.read();
@@ -80,9 +81,14 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                 }
 
                 const chunk = decoder.decode(value, { stream: true });
-                const lines = chunk.split('\n').filter(l => l.trim());
+                const content = partialLine + chunk;
+                const lines = content.split('\n');
+
+                // The last element might be a partial line
+                partialLine = lines.pop() || '';
 
                 for (const line of lines) {
+                    if (!line.trim()) continue;
                     try {
                         const data = JSON.parse(line);
                         if (data.type === 'start') {
@@ -91,22 +97,29 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                 ...prev,
                                 [data.docId]: { current: 0, total: data.totalChunks, percentage: 0 }
                             }));
-                        } else if (data.type === 'progress' && activeDocId) {
+                            // Fetch early to show the doc in the list while processing
+                            fetchDocuments();
+                        } else if (data.type === 'progress' && data.docId || activeDocId) {
+                            const targetId = data.docId || activeDocId;
                             setProgressMap(prev => ({
                                 ...prev,
-                                [activeDocId]: { current: data.current, total: data.total, percentage: data.percentage }
+                                [targetId!]: {
+                                    current: data.current,
+                                    total: data.total,
+                                    percentage: data.percentage
+                                }
                             }));
                         } else if (data.type === 'error') {
                             throw new Error(data.message);
                         } else if (data.type === 'complete') {
                             if (data.success) {
-                                toast.success(`Documento "${file.name}" procesado correctamente (${data.chunksCreated} fragmentos)`);
+                                toast.success(`Documento "${file.name}" procesado correctamente`);
                             } else {
-                                toast.error('El documento se subió pero no se pudieron generar fragmentos');
+                                toast.error('Error al procesar el documento');
                             }
                         }
                     } catch (e) {
-                        console.error('Error parsing stream line:', e);
+                        console.error('Error parsing stream line:', e, line);
                     }
                 }
             }

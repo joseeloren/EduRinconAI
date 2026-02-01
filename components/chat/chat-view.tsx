@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { ChatInterface } from './chat-interface';
 import { Avatar3DWrapper } from './avatar-scene';
 import Link from 'next/link';
-import { ArrowLeft, Share2, Check } from 'lucide-react';
-import { useLocale } from 'next-intl';
+import { ArrowLeft, Share2, Check, GraduationCap } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
+import { QuizModal } from './quiz-modal';
 
 interface ChatViewProps {
     assistantId: string;
@@ -20,7 +21,9 @@ export function ChatView({ assistantId, assistantName, assistantDescription, cha
     const [isSpeaking, setIsSpeaking] = useState(false);
     const [isSharing, setIsSharing] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
+    const [showQuizModal, setShowQuizModal] = useState(false);
     const locale = useLocale();
+    const t = useTranslations('chat');
 
     const handleShare = async () => {
         if (!chatId) return;
@@ -58,14 +61,23 @@ export function ChatView({ assistantId, assistantName, assistantDescription, cha
                                 <h1 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                                     {assistantName}
                                     {chatId && (
-                                        <button
-                                            onClick={handleShare}
-                                            disabled={isSharing}
-                                            className="ml-2 p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-full hover:bg-gray-100"
-                                            title={isCopied ? "Enlace copiado" : "Compartir chat"}
-                                        >
-                                            {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
-                                        </button>
+                                        <div className="flex items-center gap-1 ml-2">
+                                            <button
+                                                onClick={handleShare}
+                                                disabled={isSharing}
+                                                className="p-1.5 text-gray-400 hover:text-blue-600 transition-colors rounded-full hover:bg-gray-100"
+                                                title={isCopied ? (locale === 'en' ? "Link copied" : "Enlace copiado") : (locale === 'en' ? "Share chat" : "Compartir chat")}
+                                            >
+                                                {isCopied ? <Check className="w-4 h-4 text-green-500" /> : <Share2 className="w-4 h-4" />}
+                                            </button>
+                                            <button
+                                                onClick={() => setShowQuizModal(true)}
+                                                className="p-1.5 text-gray-400 hover:text-purple-600 transition-colors rounded-full hover:bg-gray-100"
+                                                title={locale === 'en' ? "Study Quiz" : "Repasar con Quiz"}
+                                            >
+                                                <GraduationCap className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     )}
                                 </h1>
                                 {assistantDescription && (
@@ -94,6 +106,13 @@ export function ChatView({ assistantId, assistantName, assistantDescription, cha
                     </div>
                 </aside>
             </div>
+
+            {showQuizModal && chatId && (
+                <QuizModal
+                    chatId={chatId}
+                    onClose={() => setShowQuizModal(false)}
+                />
+            )}
         </div>
     );
 }

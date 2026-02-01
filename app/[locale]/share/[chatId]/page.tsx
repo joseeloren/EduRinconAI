@@ -35,13 +35,21 @@ export default async function SharedChatPage({
         orderBy: (messages, { asc }) => [asc(messages.createdAt)],
     });
 
-    const initialMessages = chatMessages.map((msg) => ({
-        id: msg.id,
-        role: msg.role,
-        content: msg.content,
-        experimental_attachments: msg.attachments as any,
-        createdAt: msg.createdAt,
-    }));
+    const initialMessages = [
+        {
+            id: 'welcome-message',
+            role: 'assistant',
+            content: t('initial_message'),
+            createdAt: chat.createdAt,
+        },
+        ...chatMessages.map((msg) => ({
+            id: msg.id,
+            role: msg.role,
+            content: msg.content,
+            experimental_attachments: msg.attachments as any,
+            createdAt: msg.createdAt,
+        }))
+    ];
 
     return (
         <div className="flex flex-col h-screen bg-gray-50">

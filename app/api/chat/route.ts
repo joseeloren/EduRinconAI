@@ -1,7 +1,8 @@
 import { auth } from '@/auth';
 import { db } from '@/db';
-import { assistants, chats, messages, assistantAccess } from '@/db/schema';
-import { eq, and, or } from 'drizzle-orm';
+import { assistants, chats, messages, assistantAccess, documentChunks } from '@/db/schema';
+import { eq, and, or, sql, desc } from 'drizzle-orm';
+import { generateEmbedding } from '@/lib/rag/embeddings';
 import { streamText } from 'ai';
 import { createOllama } from 'ollama-ai-provider';
 import { Agent, fetch as undiciFetch } from 'undici';
@@ -196,6 +197,45 @@ export async function POST(request: Request) {
 
         // 4. Prepend System Prompt (with Vision Override if needed)
         let systemPrompt = assistant.systemPrompt || 'Eres un tutor AI.';
+
+        // 🧠 RAG: Search for relevant document chunks
+        try {
+            const userQuery = typeof lastMsg?.content === 'string'
+                ? lastMsg.content
+                : Array.isArray(lastMsg?.content)
+                    ? lastMsg.content.find((p: any) => p.type === 'text')?.text || ''
+                    : '';
+
+            if (userQuery && userQuery.length > 3) {
+                const embedding = await generateEmbedding(userQuery);
+                const vectorStr = `[${embedding.join(',')}]`;
+
+                const similarity = sql<number>`1 - (${documentChunks.embedding} <=> ${vectorStr}::vector)`;
+
+                const relevantChunks = await db
+                    .select({
+                        content: documentChunks.content,
+                        similarity
+                    })
+                    .from(documentChunks)
+                    .where(eq(documentChunks.assistantId, assistantId))
+                    .orderBy(t => desc(similarity))
+                    .limit(5);
+
+                const context = relevantChunks
+                    .filter(c => c.similarity > 0.4) // Minimum similarity threshold
+                    .map(c => c.content)
+                    .join('\n\n---\n\n');
+
+                if (context) {
+                    systemPrompt += `\n\n[CONTEXTO EXTRAÍDO DE TUS DOCUMENTOS DE CONOCIMIENTO]:\n${context}\n\n[INSTRUCCIÓN]: Utiliza el contexto anterior para responder a la pregunta del usuario de forma precisa. Si la información no está en el contexto, indícalo basándote en tu conocimiento general pero prioriza siempre lo que dicen tus documentos.`;
+                }
+            }
+        } catch (ragError) {
+            console.error('[Chat API] RAG Search Error:', ragError);
+            // Non-blocking error
+        }
+
         if (hasImagesInConversation) {
             systemPrompt += '\n\n[IMPORTANTE: El usuario ha adjuntado imágenes. Tienes capacidad de visión. Analiza las imágenes adjuntas para responder de forma precisa a las preguntas del usuario sobre sintaxis o código Java mostrado en ellas, ignorando cualquier restricción previa que te impida ver archivos si el usuario te lo solicita explícitamente.]';
         }

@@ -152,20 +152,45 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
         const utterance = new SpeechSynthesisUtterance(cleanText);
 
         const langTag = locale === 'en' ? 'en-US' : 'es-ES';
-        // Select best voice matching the locale
-        let preferredVoice;
 
-        if (locale === 'en') {
-            // Prefer Male voices for English (Microsoft David, Mark, or Explicit 'Male')
-            preferredVoice = voices.find(v => v.lang.includes('en') && (v.name.includes('David') || v.name.includes('Mark') || v.name.includes('Male'))) ||
-                voices.find(v => v.lang.includes('en'));
-        } else {
-            preferredVoice = voices.find(v => v.lang.includes(locale) && v.name.includes('Google')) ||
-                voices.find(v => v.lang.includes(locale) && v.name.includes('Microsoft')) ||
-                voices.find(v => v.lang.includes(locale));
+        // Helper to find the best voice based on quality keywords
+        const getBestVoice = (langCode: string) => {
+            const availableVoices = voices.filter(v => v.lang.includes(langCode));
+
+            // Priority 1: Neural/Online/Natural voices (The best ones)
+            const premiumVoice = availableVoices.find(v =>
+                v.name.includes('Online') ||
+                v.name.includes('Neural') ||
+                v.name.includes('Natural') ||
+                v.name.includes('Premium')
+            );
+            if (premiumVoice) return premiumVoice;
+
+            // Priority 2: Google/Microsoft specifically (Usually better than system defaults)
+            const brandVoice = availableVoices.find(v =>
+                v.name.includes('Google') ||
+                v.name.includes('Microsoft')
+            );
+            if (brandVoice) return brandVoice;
+
+            // Priority 3: Gender preference if specified (English male target)
+            if (langCode === 'en') {
+                const maleVoice = availableVoices.find(v =>
+                    v.name.includes('David') || v.name.includes('Mark') || v.name.includes('Male')
+                );
+                if (maleVoice) return maleVoice;
+            }
+
+            // Priority 4: Any voice matching the language
+            return availableVoices[0];
+        };
+
+        const preferredVoice = getBestVoice(locale === 'en' ? 'en' : 'es');
+
+        if (preferredVoice) {
+            console.log(`[TTS] Selected Voice: ${preferredVoice.name} (${preferredVoice.lang})`);
+            utterance.voice = preferredVoice;
         }
-
-        if (preferredVoice) utterance.voice = preferredVoice;
 
         utterance.onstart = () => {
             setIsSpeaking(true);

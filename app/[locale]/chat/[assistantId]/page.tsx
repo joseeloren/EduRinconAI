@@ -53,6 +53,7 @@ export default async function ChatPage(props: {
             id: msg.id,
             role: msg.role as 'user' | 'assistant',
             content: msg.content,
+            experimental_attachments: msg.attachments as any, // Map back to experimental_attachments
             createdAt: msg.createdAt,
         }));
     } else {

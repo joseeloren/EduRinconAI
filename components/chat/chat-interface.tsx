@@ -280,6 +280,25 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
                                 <MarkdownRenderer content={message.content} />
                             </div>
 
+                            {/* Render attachments if present */}
+                            {message.experimental_attachments && message.experimental_attachments.length > 0 && (
+                                <div className="mt-2 space-y-2">
+                                    <div className="flex flex-wrap gap-2">
+                                        {message.experimental_attachments.map((attachment, index) => (
+                                            attachment.contentType?.startsWith('image/') && (
+                                                <div key={index} className="relative group">
+                                                    <img
+                                                        src={attachment.url}
+                                                        alt={attachment.name || 'Attachment'}
+                                                        className="max-w-[200px] max-h-[200px] rounded-md border border-white/20 shadow-sm"
+                                                    />
+                                                </div>
+                                            )
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Show sources if available */}
                             {message.role === 'assistant' && (message as any).sources && (
                                 <div className="mt-2 pt-2 border-t border-gray-300">

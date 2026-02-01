@@ -240,13 +240,19 @@ export async function POST(request: Request) {
 
         // Process chat for pure LLM response (No RAG)
 
-        // Save last user message (we save only the text part to the DB)
+        // Save last user message
         const lastUserMessage = chatMessages.filter((m: any) => m.role === 'user').pop();
         if (lastUserMessage) {
             let dbContent = '';
             if (typeof lastUserMessage.content === 'string') dbContent = lastUserMessage.content;
             else if (Array.isArray(lastUserMessage.content)) dbContent = lastUserMessage.content.find((p: any) => p.type === 'text')?.text || '';
-            await db.insert(messages).values({ chatId: chat.id, role: 'user', content: dbContent });
+
+            await db.insert(messages).values({
+                chatId: chat.id,
+                role: 'user',
+                content: dbContent,
+                attachments: lastUserMessage.experimental_attachments || null
+            });
         }
 
 

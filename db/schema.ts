@@ -85,6 +85,7 @@ export const messages = pgTable('messages', {
     chatId: uuid('chat_id').notNull().references(() => chats.id, { onDelete: 'cascade' }),
     role: messageRoleEnum('role').notNull(),
     content: text('content').notNull(),
+    attachments: jsonb('attachments'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 

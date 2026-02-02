@@ -9,19 +9,19 @@ import bcrypt from 'bcryptjs';
 
 async function main() {
     console.log('🔄 Resetting passwords...');
-    const newHash = await bcrypt.hash('password', 10);
+    const newHash = await bcrypt.hash('C1av3-2026', 10);
 
     await db.update(users)
         .set({ passwordHash: newHash })
-        .where(eq(users.email, 'student@iesrincon.es'));
+        .where(eq(users.email, 'student@ieselrincon.es'));
 
     await db.update(users)
         .set({ passwordHash: newHash })
-        .where(eq(users.email, 'teacher@iesrincon.es'));
+        .where(eq(users.email, 'teacher@ieselrincon.es'));
 
     await db.update(users)
         .set({ passwordHash: newHash })
-        .where(eq(users.email, 'admin@iesrincon.es'));
+        .where(eq(users.email, 'admin@ieselrincon.es'));
 
     console.log('✅ Passwords reset to "password" for student, teacher, and admin.');
     process.exit(0);

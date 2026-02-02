@@ -104,7 +104,7 @@ export function UserForm({ initialData, isEditing = false, onSuccess }: UserForm
                             type="email"
                             value={formData.email}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({ ...formData, email: e.target.value })}
-                            placeholder="juan@iesrincon.es"
+                            placeholder="juan@ieselrincon.es"
                             required
                         />
                     </div>

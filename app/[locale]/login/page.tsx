@@ -130,8 +130,8 @@ export default function LoginPage() {
                         <button
                             type="button"
                             onClick={() => {
-                                setEmail('admin@iesrincon.es');
-                                setPassword('password');
+                                setEmail('admin@ieselrincon.es');
+                                setPassword('C1av3-2026');
                             }}
                             className="px-3 py-2 text-xs font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
                             disabled={loading}
@@ -141,8 +141,8 @@ export default function LoginPage() {
                         <button
                             type="button"
                             onClick={() => {
-                                setEmail('teacher@iesrincon.es');
-                                setPassword('password');
+                                setEmail('teacher@ieselrincon.es');
+                                setPassword('C1av3-2026');
                             }}
                             className="px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 hover:bg-blue-200 rounded-md transition-colors"
                             disabled={loading}
@@ -152,8 +152,8 @@ export default function LoginPage() {
                         <button
                             type="button"
                             onClick={() => {
-                                setEmail('student@iesrincon.es');
-                                setPassword('password');
+                                setEmail('student@ieselrincon.es');
+                                setPassword('C1av3-2026');
                             }}
                             className="px-3 py-2 text-xs font-medium text-green-700 bg-green-100 hover:bg-green-200 rounded-md transition-colors"
                             disabled={loading}

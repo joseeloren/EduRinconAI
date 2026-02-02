@@ -142,53 +142,34 @@ function AvatarModel({ isSpeaking, modelUrl = DEFAULT_AVATAR_URL, debugPose }: A
         return () => clearTimeout(timeout);
     }, [isSpeaking, idleClips.length, talkingClips.length]);
 
-    // Playback Controller (Robust Blending)
+    // Playback Controller (Stable Manual Blending)
     useEffect(() => {
-        const desiredActionName = isSpeaking
+        const nextName = isSpeaking
             ? `Talking_${currentTalkingIdx}`
             : `Idle_${currentIdleIdx}`;
 
-        const nextAction = actions[desiredActionName];
-        const lastAction = activeActionRef.current;
-
+        const nextAction = actions[nextName];
         if (!nextAction) return;
 
-        // Transition settings
-        const isStateChange = lastAction && (
-            (lastAction.getClip().name.startsWith('Idle') && nextAction.getClip().name.startsWith('Talking')) ||
-            (lastAction.getClip().name.startsWith('Talking') && nextAction.getClip().name.startsWith('Idle'))
-        );
+        const fadeTime = isSpeaking ? 0.3 : 1.0;
 
-        // Faster for speaking (0.4s), slower for idle variations (1.2s)
-        const fadeDuration = isStateChange ? 0.4 : 1.2;
+        // Ensure next action is ready
+        nextAction.reset();
+        nextAction.setEffectiveWeight(1);
+        nextAction.fadeIn(fadeTime);
+        nextAction.play();
 
-        if (lastAction !== nextAction) {
-            // 1. Prepare next action
-            nextAction.reset();
-            nextAction.setEffectiveWeight(1);
-            nextAction.setEffectiveTimeScale(1);
-            nextAction.enabled = true;
-
-            // 2. Perform transition
-            if (lastAction && lastAction.isRunning()) {
-                lastAction.crossFadeTo(nextAction, fadeDuration, true);
-            } else {
-                nextAction.fadeIn(fadeDuration);
-            }
-
-            // 3. Play and track
-            nextAction.play();
-            activeActionRef.current = nextAction;
-        }
-
-        // 4. Emergency Cleanup: Fade out any action that isn't the target
+        // Fade out all other actions
         Object.keys(actions).forEach(key => {
-            const action = actions[key];
-            if (action && action !== nextAction && action.isRunning()) {
-                action.fadeOut(fadeDuration * 1.5);
+            if (key !== nextName) {
+                const action = actions[key];
+                if (action && action.isRunning()) {
+                    action.fadeOut(fadeTime);
+                }
             }
         });
 
+        activeActionRef.current = nextAction;
     }, [isSpeaking, currentIdleIdx, currentTalkingIdx, actions]);
 
     useFrame((state) => {

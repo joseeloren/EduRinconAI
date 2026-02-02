@@ -6,25 +6,25 @@ async function seedUsers() {
     console.log('🌱 Seeding users...');
 
     try {
-        const hashedPassword = await bcrypt.hash('password', 10);
+        const hashedPassword = await bcrypt.hash('C1av3-2026', 10);
 
         const newUsers = await db
             .insert(users)
             .values([
                 {
-                    email: 'admin@iesrincon.es',
+                    email: 'admin@ieselrincon.es',
                     name: 'Administrador',
                     role: 'ADMIN',
                     passwordHash: hashedPassword,
                 },
                 {
-                    email: 'teacher@iesrincon.es',
+                    email: 'teacher@ieselrincon.es',
                     name: 'Profesor Demo',
                     role: 'TEACHER',
                     passwordHash: hashedPassword,
                 },
                 {
-                    email: 'student@iesrincon.es',
+                    email: 'student@ieselrincon.es',
                     name: 'Alumno Demo',
                     role: 'STUDENT',
                     passwordHash: hashedPassword,

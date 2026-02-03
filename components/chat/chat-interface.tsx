@@ -170,7 +170,11 @@ export function ChatInterface({ assistantId, chatId, initialMessages = [], onSpe
             const availableVoices = voices.filter(v => v.lang.includes(langCode));
 
             // Common male name patterns in Spanish and English (Sorted by quality preference)
-            const maleNames = ['Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'Dario', 'Elias', 'Victor', 'Pedro', 'Mateo', 'David', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo'];
+            // Common male name patterns in Spanish and English (Sorted by quality preference)
+            const maleNames = [
+                'Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'Dario', 'Elias', 'Victor', 'Pedro', 'Mateo', 'David', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo',
+                'Arthur', 'Daniel', 'Richard', 'Thomas', 'Oliver', 'Microsoft David', 'Google US English Male'
+            ];
 
             // Priority 1: Neural/Online/Natural MALE voices
             const premiumMaleVoice = availableVoices.find(v =>

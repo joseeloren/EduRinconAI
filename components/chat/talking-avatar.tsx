@@ -59,8 +59,37 @@ export function TalkingAvatar({
 
         // Try to select a good voice
         const voices = synthRef.current.getVoices();
-        const preferredVoice = voices.find(v => v.lang.includes(language) && v.name.includes('Google')) ||
-            voices.find(v => v.lang.includes(language));
+
+        const getBestVoice = (langCode: string) => {
+            const availableVoices = voices.filter(v => v.lang.includes(langCode));
+            const maleNames = [
+                'Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'Dario', 'Elias', 'Victor', 'Pedro', 'Mateo', 'David', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo',
+                'Arthur', 'Daniel', 'Richard', 'Thomas', 'Oliver', 'Microsoft David', 'Google US English Male'
+            ];
+
+            // Priority 1: Neural/Online/Natural MALE voices
+            const premiumMaleVoice = availableVoices.find(v =>
+                (v.name.includes('Online') || v.name.includes('Neural') || v.name.includes('Natural')) &&
+                maleNames.some(name => v.name.includes(name))
+            );
+            if (premiumMaleVoice) return premiumMaleVoice;
+
+            // Priority 2: Any MALE voice
+            const anyMaleVoice = availableVoices.find(v =>
+                maleNames.some(name => v.name.includes(name))
+            );
+            if (anyMaleVoice) return anyMaleVoice;
+
+            // Priority 3: Any Neural/Online voice
+            const premiumVoice = availableVoices.find(v =>
+                v.name.includes('Online') || v.name.includes('Neural') || v.name.includes('Natural')
+            );
+            if (premiumVoice) return premiumVoice;
+
+            return availableVoices[0];
+        };
+
+        const preferredVoice = getBestVoice(language.split('-')[0]);
 
         if (preferredVoice) utterance.voice = preferredVoice;
 

@@ -15,9 +15,9 @@ const getBaseURL = () => {
     return url.replace(/\/+$/, '').replace(/\/v1$/, '');
 };
 
-// Timeouts para Ollama: modelos grandes (ej. deepseek-r1:70b) pueden tardar mucho en cargar y responder
-const LLM_HEADERS_TIMEOUT_MS = parseInt(process.env.LLM_HEADERS_TIMEOUT_MS || '600000', 10); // 10 min
-const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '1200000', 10);     // 20 min
+// Timeouts para Ollama: modelos grandes (ej. qwen2.5:72b) requieren tiempos de carga y respuesta masivos
+const LLM_HEADERS_TIMEOUT_MS = parseInt(process.env.LLM_HEADERS_TIMEOUT_MS || '900000', 10); // 15 min
+const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '1800000', 10);     // 30 min
 
 // Configure Native Ollama provider (bypasses OpenAI compatibility layer)
 const ollama = createOllama({
@@ -299,17 +299,22 @@ export async function POST(request: Request) {
         }
 
 
-        // Stream response
-        const modelName = process.env.LLM_MODEL_NAME || 'llama3.2';
+        // Stream response - Hardcoded and optimized for Qwen2.5 72B
+        const modelName = 'qwen2.5:72b';
         console.log(`[Chat API] Starting stream with model: ${modelName}. Messages count: ${allMessages.length}`);
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
         try {
             const result = await streamText({
-                model: ollama(modelName) as any, // Cast to any to bypass version mismatch
+                model: ollama(modelName, {
+                    numCtx: 16384,
+                    numGpu: 99,
+                    numPredict: 2048,
+                    repeatPenalty: 1.1,
+                }) as any, // Cast to any to bypass version mismatch
                 messages: allMessages as any,
                 temperature: (assistant.temperature ?? 70) / 100,
-                maxTokens: 2000,
+                maxTokens: 2048,
                 // Add explicit error handling for the stream
                 onFinish: async ({ text }) => {
                     console.log('[Chat API] Stream finished successfully');

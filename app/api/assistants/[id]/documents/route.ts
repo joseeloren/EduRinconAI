@@ -81,8 +81,8 @@ export async function POST(
 
         // 2. Split into chunks
         const splitter = new RecursiveCharacterTextSplitter({
-            chunkSize: 800,
-            chunkOverlap: 100,
+            chunkSize: 1200,
+            chunkOverlap: 150,
         });
 
         const chunks = await splitter.splitText(text);
@@ -98,7 +98,7 @@ export async function POST(
 
                     let successCount = 0;
                     let completedCount = 0;
-                    const concurrencyLimit = 3;
+                    const concurrencyLimit = 6;
                     const queue = [...chunks.entries()]; // [index, chunk]
 
                     // Worker function

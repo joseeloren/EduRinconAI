@@ -307,9 +307,10 @@ export async function POST(request: Request) {
         try {
             const result = await streamText({
                 model: ollama(modelName, {
-                    numCtx: 16384,
+                    numCtx: 8192,
                     numGpu: 99,
                     numPredict: 2048,
+                    numThread: 32, // Leveraging 96 vCores
                     repeatPenalty: 1.1,
                 }) as any, // Cast to any to bypass version mismatch
                 messages: allMessages as any,

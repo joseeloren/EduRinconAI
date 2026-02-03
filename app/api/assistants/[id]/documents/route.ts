@@ -98,7 +98,7 @@ export async function POST(
 
                     let successCount = 0;
                     let completedCount = 0;
-                    const concurrencyLimit = 6;
+                    const concurrencyLimit = 24;
                     const queue = [...chunks.entries()]; // [index, chunk]
 
                     // Worker function

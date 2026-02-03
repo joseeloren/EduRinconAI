@@ -299,8 +299,8 @@ export async function POST(request: Request) {
         }
 
 
-        // Stream response - Hardcoded and optimized for DeepSeek-R1 32B
-        const modelName = 'deepseek-r1:32b';
+        // Stream response - Hardcoded and optimized for Mistral Small (24B)
+        const modelName = 'mistral-small';
         console.log(`[Chat API] Starting stream with model: ${modelName}. Messages count: ${allMessages.length}`);
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 

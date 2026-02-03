@@ -299,23 +299,23 @@ export async function POST(request: Request) {
         }
 
 
-        // Stream response - Hardcoded and optimized for Qwen2.5 72B
-        const modelName = 'qwen2.5:72b';
+        // Stream response - Hardcoded and optimized for DeepSeek-R1 32B
+        const modelName = 'deepseek-r1:32b';
         console.log(`[Chat API] Starting stream with model: ${modelName}. Messages count: ${allMessages.length}`);
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
         try {
             const result = await streamText({
                 model: ollama(modelName, {
-                    numCtx: 4096,
-                    numGpu: 75, // Split between L40S and 128GB RAM for stability
-                    numPredict: 1024,
+                    numCtx: 32768,
+                    numGpu: 99,
+                    numPredict: 4096,
                     numThread: 32, // Leveraging 96 vCores
                     repeatPenalty: 1.1,
                 }) as any, // Cast to any to bypass version mismatch
                 messages: allMessages as any,
                 temperature: (assistant.temperature ?? 70) / 100,
-                maxTokens: 1024,
+                maxTokens: 4096,
                 // Add explicit error handling for the stream
                 onFinish: async ({ text }) => {
                     console.log('[Chat API] Stream finished successfully');

@@ -63,14 +63,15 @@ export function TalkingAvatar({
         const getBestVoice = (langCode: string) => {
             const availableVoices = voices.filter(v => v.lang.includes(langCode));
             const maleNames = [
-                'Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'Dario', 'Elias', 'Victor', 'Pedro', 'Mateo', 'David', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo',
-                'Arthur', 'Daniel', 'Richard', 'Thomas', 'Oliver', 'Microsoft David', 'Google US English Male'
+                'Alvaro', 'Jorge', 'Julian', 'Diego', 'Manuel', 'Dario', 'Elias', 'Victor', 'Pedro', 'Mateo', 'Mark', 'Male', 'Guy', 'James', 'Andrew', 'Enrique', 'Pablo',
+                'Arthur', 'Daniel', 'Richard', 'Thomas', 'Oliver', 'Ryan', 'Google US English Male'
             ];
 
-            // Priority 1: Neural/Online/Natural MALE voices
+            // Priority 1: Neural/Online/Natural MALE voices (EXCLUDING David)
             const premiumMaleVoice = availableVoices.find(v =>
                 (v.name.includes('Online') || v.name.includes('Neural') || v.name.includes('Natural')) &&
-                maleNames.some(name => v.name.includes(name))
+                maleNames.some(name => v.name.includes(name)) &&
+                !v.name.includes('David')
             );
             if (premiumMaleVoice) return premiumMaleVoice;
 

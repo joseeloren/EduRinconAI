@@ -307,15 +307,15 @@ export async function POST(request: Request) {
         try {
             const result = await streamText({
                 model: ollama(modelName, {
-                    numCtx: 8192,
-                    numGpu: 99,
-                    numPredict: 2048,
+                    numCtx: 4096,
+                    numGpu: 75, // Split between L40S and 128GB RAM for stability
+                    numPredict: 1024,
                     numThread: 32, // Leveraging 96 vCores
                     repeatPenalty: 1.1,
                 }) as any, // Cast to any to bypass version mismatch
                 messages: allMessages as any,
                 temperature: (assistant.temperature ?? 70) / 100,
-                maxTokens: 2048,
+                maxTokens: 1024,
                 // Add explicit error handling for the stream
                 onFinish: async ({ text }) => {
                     console.log('[Chat API] Stream finished successfully');

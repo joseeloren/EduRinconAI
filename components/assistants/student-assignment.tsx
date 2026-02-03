@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { X, Plus, Search } from 'lucide-react';
 
+import { useTranslations } from 'next-intl';
+
 interface Student {
     id: string;
     name: string;
@@ -25,6 +27,7 @@ interface StudentAssignmentProps {
 }
 
 export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
+    const t = useTranslations('studentAssignment');
     const [allStudents, setAllStudents] = useState<Student[]>([]);
     const [assignments, setAssignments] = useState<Assignment[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
@@ -69,7 +72,7 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
             await loadData();
         } catch (error) {
             console.error('Error assigning student:', error);
-            alert('Error al asignar estudiante');
+            alert(t('errorAssign'));
         } finally {
             setActionLoading(null);
         }
@@ -88,7 +91,7 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
             await loadData();
         } catch (error) {
             console.error('Error unassigning student:', error);
-            alert('Error al desasignar estudiante');
+            alert(t('errorUnassign'));
         } finally {
             setActionLoading(null);
         }
@@ -106,7 +109,7 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
     );
 
     if (loading) {
-        return <div className="text-center py-8">Cargando...</div>;
+        return <div className="text-center py-8">{t('loading')}</div>;
     }
 
     return (
@@ -114,9 +117,9 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
             {/* Available Students */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Estudiantes Disponibles</CardTitle>
+                    <CardTitle>{t('titleAvailable')}</CardTitle>
                     <CardDescription>
-                        Selecciona estudiantes para asignarlos a este asistente
+                        {t('descriptionAvailable')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -124,7 +127,7 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
                         <div className="relative">
                             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                             <Input
-                                placeholder="Buscar estudiante..."
+                                placeholder={t('searchPlaceholder')}
                                 value={searchQuery}
                                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
                                 className="pl-9"
@@ -135,7 +138,7 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
                             <div className="space-y-2">
                                 {filteredAvailable.length === 0 ? (
                                     <p className="text-sm text-muted-foreground text-center py-8">
-                                        No hay estudiantes disponibles
+                                        {t('noAvailable')}
                                     </p>
                                 ) : (
                                     filteredAvailable.map((student) => (
@@ -168,10 +171,9 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
             {/* Assigned Students */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Estudiantes Asignados</CardTitle>
+                    <CardTitle>{t('titleAssigned')}</CardTitle>
                     <CardDescription>
-                        {assignments.length} estudiante
-                        {assignments.length !== 1 ? 's' : ''} con acceso
+                        {t('descriptionAssigned', { count: assignments.length })}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -179,7 +181,7 @@ export function StudentAssignment({ assistantId }: StudentAssignmentProps) {
                         <div className="space-y-2">
                             {assignments.length === 0 ? (
                                 <p className="text-sm text-muted-foreground text-center py-8">
-                                    Ningún estudiante asignado aún
+                                    {t('noAssigned')}
                                 </p>
                             ) : (
                                 assignments.map((assignment) => (

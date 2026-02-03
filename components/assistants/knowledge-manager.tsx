@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { FileText, Upload, Trash2, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { useTranslations } from 'next-intl';
+
 interface Document {
     id: string;
     name: string;
@@ -22,6 +24,7 @@ interface KnowledgeManagerProps {
 }
 
 export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
+    const t = useTranslations('knowledgeManager');
     const [documents, setDocuments] = useState<Document[]>([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
@@ -36,7 +39,7 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
             setDocuments(data.documents);
         } catch (error) {
             console.error('Error fetching documents:', error);
-            toast.error('Error al cargar documentos');
+            toast.error(t('fetchError'));
         } finally {
             setLoading(false);
         }
@@ -117,9 +120,9 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                             throw new Error(data.message);
                         } else if (data.type === 'complete') {
                             if (data.success) {
-                                toast.success(`Documento "${file.name}" procesado correctamente`);
+                                toast.success(t('uploadSuccess', { name: file.name }));
                             } else {
-                                toast.error('Error al procesar el documento');
+                                toast.error(t('uploadError'));
                             }
                         }
                     } catch (e) {
@@ -130,7 +133,7 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
 
             fetchDocuments();
         } catch (error: any) {
-            toast.error(error.message || 'Error al subir el documento');
+            toast.error(error.message || t('uploadError'));
         } finally {
             setUploading(false);
             setActiveDocId(null);
@@ -149,20 +152,19 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
     });
 
     const handleDelete = async (docId: string) => {
-        if (!confirm('¿Estás seguro de que quieres eliminar este documento? Se borrarán todos sus vectores asociados.')) return;
+        if (!confirm(t('deleteConfirm'))) return;
 
         try {
-            // We need a DELETE route. I'll implement it next.
             const res = await fetch(`/api/assistants/${assistantId}/documents/${docId}`, {
                 method: 'DELETE',
             });
 
             if (!res.ok) throw new Error('Failed to delete document');
 
-            toast.success('Documento eliminado');
+            toast.success(t('deleteSuccess'));
             setDocuments(docs => docs.filter(d => d.id !== docId));
         } catch (error) {
-            toast.error('Error al eliminar el documento');
+            toast.error(t('deleteError'));
         }
     };
 
@@ -180,10 +182,10 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <Upload className="h-5 w-5" />
-                        Subir Documentos
+                        {t('uploadTitle')}
                     </CardTitle>
                     <CardDescription>
-                        Añade archivos PDF, Word o Texto para mejorar el conocimiento de este asistente. Por ahora se procesan un máximo de 800 caracteres por fragmento.
+                        {t('uploadDescription')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -199,8 +201,11 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                     <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
                                     <p className="text-sm font-medium">
                                         {activeDocId && progressMap[activeDocId]
-                                            ? `Procesando: ${progressMap[activeDocId].current} de ${progressMap[activeDocId].total} fragmentos`
-                                            : 'Subiendo y analizando archivo...'}
+                                            ? t('processing', {
+                                                current: progressMap[activeDocId].current,
+                                                total: progressMap[activeDocId].total
+                                            })
+                                            : t('uploading')}
                                     </p>
 
                                     {activeDocId && progressMap[activeDocId] && (
@@ -212,14 +217,14 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                                 ></div>
                                             </div>
                                             <p className="text-[10px] text-muted-foreground mt-2 text-center">
-                                                Generando vectores de conocimiento ({progressMap[activeDocId].percentage}%)
+                                                {t('generatingVectors', { percentage: progressMap[activeDocId].percentage })}
                                             </p>
                                         </div>
                                     )}
 
                                     {!(activeDocId && progressMap[activeDocId]) && (
                                         <p className="text-xs text-muted-foreground mt-1 text-center">
-                                            Extrayendo texto del archivo...
+                                            {t('extractingText')}
                                         </p>
                                     )}
                                 </>
@@ -227,9 +232,9 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                 <>
                                     <Upload className="h-10 w-10 text-gray-400 mb-4" />
                                     <p className="text-sm font-medium">
-                                        {isDragActive ? 'Suelta el archivo aquí' : 'Haz clic o arrastra un archivo aquí'}
+                                        {isDragActive ? t('dropActive') : t('dropInactive')}
                                     </p>
-                                    <p className="text-xs text-muted-foreground mt-1">PDF, DOCX o TXT (MAX. 10MB)</p>
+                                    <p className="text-xs text-muted-foreground mt-1">{t('fileLimits')}</p>
                                 </>
                             )}
                         </div>
@@ -241,16 +246,16 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         <FileText className="h-5 w-5" />
-                        Base de Conocimiento
+                        {t('knowledgeBaseTitle')}
                     </CardTitle>
                     <CardDescription>
-                        Lista de documentos que este asistente utiliza para responder.
+                        {t('knowledgeBaseDescription')}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     {documents.length === 0 ? (
                         <div className="text-center py-8 text-muted-foreground italic">
-                            No hay documentos todavía. Sube uno arriba para empezar.
+                            {t('noDocuments')}
                         </div>
                     ) : (
                         <div className="divide-y">
@@ -272,18 +277,18 @@ export function KnowledgeManager({ assistantId }: KnowledgeManagerProps) {
                                                 <span className="flex items-center gap-1 text-[10px]">
                                                     {doc.status === 'ready' ? (
                                                         <span className="text-green-600 flex items-center gap-0.5">
-                                                            <CheckCircle2 className="h-3 w-3" /> Listo
+                                                            <CheckCircle2 className="h-3 w-3" /> {t('statusReady')}
                                                         </span>
                                                     ) : doc.status === 'processing' || progressMap[doc.id] ? (
                                                         <span className="text-blue-600 flex items-center gap-1">
                                                             <Loader2 className="h-3 w-3 animate-spin" />
                                                             {progressMap[doc.id]
-                                                                ? `${progressMap[doc.id].current}/${progressMap[doc.id].total} fragmentos`
-                                                                : 'Procesando'}
+                                                                ? `${progressMap[doc.id].current}/${progressMap[doc.id].total} ${t('statusProcessing').toLowerCase()}`
+                                                                : t('statusProcessing')}
                                                         </span>
                                                     ) : (
                                                         <span className="text-red-600 flex items-center gap-0.5">
-                                                            <AlertCircle className="h-3 w-3" /> Error
+                                                            <AlertCircle className="h-3 w-3" /> {t('statusError')}
                                                         </span>
                                                     )}
                                                 </span>

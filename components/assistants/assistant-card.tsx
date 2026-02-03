@@ -37,7 +37,7 @@ export function AssistantCard({ assistant, documentCount, userRole = 'TEACHER' }
                     {assistant.description ? (
                         <p className="text-gray-600 text-sm line-clamp-3 mb-auto">{assistant.description}</p>
                     ) : (
-                        <p className="text-gray-400 text-sm italic mb-auto">Sin descripción</p>
+                        <p className="text-gray-400 text-sm italic mb-auto">{t('noDescription')}</p>
                     )}
 
                     <div className="flex items-center gap-2 mt-4 pt-4 border-t">
@@ -53,7 +53,7 @@ export function AssistantCard({ assistant, documentCount, userRole = 'TEACHER' }
                         {/* Show document count if provided */}
                         {documentCount !== undefined && (
                             <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                                {documentCount} docs
+                                {documentCount} {t('docs')}
                             </span>
                         )}
                     </div>

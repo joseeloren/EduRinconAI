@@ -9,7 +9,9 @@
         "loading": "Loading...",
         "saving": "Saving...",
         "public": "Public",
-        "private": "Private"
+        "private": "Private",
+        "noDescription": "No description",
+        "docs": "docs"
     },
     "roles": {
         "admin": "Administrator",
@@ -133,5 +135,40 @@
     "createPage": {
         "title": "Create New Assistant",
         "subtitle": "Customize an AI assistant for your students"
+    },
+    "knowledgeManager": {
+        "uploadTitle": "Upload Documents",
+        "uploadDescription": "Add PDF, Word, or Text files to improve this assistant's knowledge. Currently processing max 1200 characters per chunk.",
+        "processing": "Processing: {current} of {total} chunks",
+        "uploading": "Uploading and analyzing file...",
+        "generatingVectors": "Generating knowledge vectors ({percentage}%)",
+        "extractingText": "Extracting text from file...",
+        "dropActive": "Drop the file here",
+        "dropInactive": "Click or drag a file here",
+        "fileLimits": "PDF, DOCX or TXT (MAX. 10MB)",
+        "knowledgeBaseTitle": "Knowledge Base",
+        "knowledgeBaseDescription": "List of documents this assistant uses to answer questions.",
+        "noDocuments": "No documents yet. Upload one above to get started.",
+        "statusReady": "Ready",
+        "statusProcessing": "Processing",
+        "statusError": "Error",
+        "deleteConfirm": "Are you sure you want to delete this document? All associated vectors will be deleted.",
+        "deleteSuccess": "Document deleted",
+        "deleteError": "Error deleting document",
+        "uploadSuccess": "Document \"{name}\" processed successfully",
+        "uploadError": "Error processing document",
+        "fetchError": "Error loading documents"
+    },
+    "studentAssignment": {
+        "titleAvailable": "Available Students",
+        "descriptionAvailable": "Select students to assign them to this assistant",
+        "searchPlaceholder": "Search student...",
+        "noAvailable": "No students available",
+        "titleAssigned": "Assigned Students",
+        "descriptionAssigned": "{count} student{count, plural, =1 {} other {s}} with access",
+        "noAssigned": "No students assigned yet",
+        "errorAssign": "Error assigning student",
+        "errorUnassign": "Error unassigning student",
+        "loading": "Loading..."
     }
 }

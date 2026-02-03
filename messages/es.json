@@ -9,7 +9,9 @@
         "loading": "Cargando...",
         "saving": "Guardando...",
         "public": "Público",
-        "private": "Privado"
+        "private": "Privado",
+        "noDescription": "Sin descripción",
+        "docs": "docs"
     },
     "roles": {
         "admin": "Administrador",
@@ -133,5 +135,40 @@
     "createPage": {
         "title": "Crear Nuevo Asistente",
         "subtitle": "Personaliza un asistente de IA para tus estudiantes"
+    },
+    "knowledgeManager": {
+        "uploadTitle": "Subir Documentos",
+        "uploadDescription": "Añade archivos PDF, Word o Texto para mejorar el conocimiento de este asistente. Por ahora se procesan un máximo de 1200 caracteres por fragmento.",
+        "processing": "Procesando: {current} de {total} fragmentos",
+        "uploading": "Subiendo y analizando archivo...",
+        "generatingVectors": "Generando vectores de conocimiento ({percentage}%)",
+        "extractingText": "Extrayendo texto del archivo...",
+        "dropActive": "Suelta el archivo aquí",
+        "dropInactive": "Haz clic o arrastra un archivo aquí",
+        "fileLimits": "PDF, DOCX o TXT (MAX. 10MB)",
+        "knowledgeBaseTitle": "Base de Conocimiento",
+        "knowledgeBaseDescription": "Lista de documentos que este asistente utiliza para responder.",
+        "noDocuments": "No hay documentos todavía. Sube uno arriba para empezar.",
+        "statusReady": "Listo",
+        "statusProcessing": "Procesando",
+        "statusError": "Error",
+        "deleteConfirm": "¿Estás seguro de que quieres eliminar este documento? Se borrarán todos sus vectores asociados.",
+        "deleteSuccess": "Documento eliminado",
+        "deleteError": "Error al eliminar el documento",
+        "uploadSuccess": "Documento \"{name}\" procesado correctamente",
+        "uploadError": "Error al procesar el documento",
+        "fetchError": "Error al cargar documentos"
+    },
+    "studentAssignment": {
+        "titleAvailable": "Estudiantes Disponibles",
+        "descriptionAvailable": "Selecciona estudiantes para asignarlos a este asistente",
+        "searchPlaceholder": "Buscar estudiante...",
+        "noAvailable": "No hay estudiantes disponibles",
+        "titleAssigned": "Estudiantes Asignados",
+        "descriptionAssigned": "{count} {count, plural, =1 {estudiante} other {estudiantes}} con acceso",
+        "noAssigned": "Ningún estudiante asignado aún",
+        "errorAssign": "Error al asignar estudiante",
+        "errorUnassign": "Error al desasignar estudiante",
+        "loading": "Cargando..."
     }
 }

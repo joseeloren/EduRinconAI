@@ -1,4 +1,4 @@
-import { Agent, fetch as undiciFetch } from 'undici';
+import * as undici from 'undici';
 
 const getBaseURL = () => {
     let url = process.env.LLM_API_BASE_URL || 'http://localhost:1234/v1';
@@ -16,7 +16,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     const baseURL = getBaseURL();
     const url = `${baseURL}/embeddings`;
 
-    const response = await undiciFetch(url, {
+    const response = await (undici.fetch as any)(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -26,7 +26,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
             model: EMBEDDING_MODEL,
             input: text,
         }),
-        dispatcher: new Agent({
+        dispatcher: new undici.Agent({
             headersTimeout: TIMEOUT_MS,
             bodyTimeout: TIMEOUT_MS,
             connect: { timeout: 60000 }

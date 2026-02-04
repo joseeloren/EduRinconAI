@@ -5,7 +5,7 @@ import { eq, and, or, sql, desc } from 'drizzle-orm';
 import { generateEmbedding } from '@/lib/rag/embeddings';
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
-import { Agent, fetch as undiciFetch } from 'undici';
+import * as undici from 'undici';
 import { canAccessAssistant } from '@/lib/auth/roles';
 
 // Helper to ensure baseURL is correct for LM Studio / OpenAI
@@ -32,9 +32,9 @@ const openai = createOpenAI({
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), LLM_BODY_TIMEOUT_MS);
 
-        return undiciFetch(input as any, {
+        return (undici.fetch as any)(input as any, {
             ...init,
-            dispatcher: new Agent({
+            dispatcher: new undici.Agent({
                 headersTimeout: LLM_HEADERS_TIMEOUT_MS,
                 bodyTimeout: LLM_BODY_TIMEOUT_MS,
                 connect: { timeout: 300000 }
@@ -167,7 +167,7 @@ export async function POST(request: Request) {
                                     console.log(`[Chat API] Processing image attachment: ${att.name || 'unnamed'}, size: ${buffer.length} bytes`);
                                     return {
                                         type: 'image',
-                                        image: base64Content, // Switching to raw base64 string per user's Ollama example
+                                        image: buffer,
                                         mimeType: att.contentType || 'image/jpeg'
                                     };
                                 }
@@ -333,7 +333,12 @@ export async function POST(request: Request) {
             });
         } catch (streamError) {
             console.error('[Chat API] CRITICAL error in streamText:', streamError);
-            console.error('[Chat API] Full messages payload causing error:', JSON.stringify(allMessages, (h, v) => (v instanceof Buffer || v instanceof Uint8Array) ? '<BINARY_DATA>' : v, 2));
+            const errorDetails = streamError instanceof Error ? {
+                message: streamError.message,
+                name: streamError.name,
+                stack: streamError.stack
+            } : streamError;
+            console.error('[Chat API] Stream error details:', JSON.stringify(errorDetails, null, 2));
             throw streamError;
         }
     } catch (error) {

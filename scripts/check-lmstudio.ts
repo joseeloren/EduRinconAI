@@ -5,6 +5,7 @@ dotenv.config({ path: '.env.local' });
 
 const baseURL = process.env.LLM_API_BASE_URL || 'http://localhost:1234/v1';
 const modelName = process.env.LLM_MODEL_NAME || 'mistral-small';
+const embeddingModelName = process.env.LLM_EMBEDDING_MODEL || 'text-embedding-nomic-embed-text-v1.5';
 const apiKey = process.env.LLM_API_KEY || 'lm-studio';
 
 async function diagnose() {
@@ -30,10 +31,18 @@ async function diagnose() {
             console.log('Loaded models in LM Studio:', loadedModels);
             
             if (loadedModels.includes(modelName)) {
-                console.log(`✅ Model "${modelName}" is loaded and ready.`);
+                console.log(`✅ Chat Model "${modelName}" is loaded and ready.`);
             } else {
-                console.warn(`⚠️ Model "${modelName}" is NOT in the loaded models list.`);
-                console.log('Please update LLM_MODEL_NAME in .env.local to match one of the loaded models.');
+                console.warn(`⚠️ Chat Model "${modelName}" is NOT in the loaded list.`);
+                console.log(`   Available: ${loadedModels.join(', ')}`);
+            }
+
+            if (loadedModels.includes(embeddingModelName)) {
+                console.log(`✅ Embedding Model "${embeddingModelName}" is loaded and ready.`);
+            } else {
+                console.warn(`⚠️ Embedding Model "${embeddingModelName}" is NOT in the loaded list.`);
+                console.log(`   Target: ${embeddingModelName}`);
+                console.log('   TIP: En LM Studio, el nombre debe ser EXACTO (incluyendo @q8_0 si procede).');
             }
         }
 

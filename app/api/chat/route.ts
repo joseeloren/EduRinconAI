@@ -4,31 +4,29 @@ import { assistants, chats, messages, assistantAccess, documentChunks } from '@/
 import { eq, and, or, sql, desc } from 'drizzle-orm';
 import { generateEmbedding } from '@/lib/rag/embeddings';
 import { streamText } from 'ai';
-import { createOllama } from 'ollama-ai-provider';
-import { Agent, fetch as undiciFetch } from 'undici';
-import { canAccessAssistant } from '@/lib/auth/roles';
+import { createOpenAI } from '@ai-sdk/openai';
 
-// Helper to ensure baseURL is correct for Ollama
+// Helper to ensure baseURL is correct for LM Studio / OpenAI
 const getBaseURL = () => {
-    let url = process.env.LLM_API_BASE_URL || 'http://localhost:11434';
-    // Remove trailing slash and /v1 if present (native provider appends /api/chat)
-    return url.replace(/\/+$/, '').replace(/\/v1$/, '');
+    let url = process.env.LLM_API_BASE_URL || 'http://localhost:1234/v1';
+    // Ensure it ends with /v1
+    if (!url.endsWith('/v1')) {
+        url = url.replace(/\/+$/, '') + '/v1';
+    }
+    return url;
 };
 
-// Timeouts para Ollama: modelos grandes (ej. qwen2.5:72b) requieren tiempos de carga y respuesta masivos
+const getAPIKey = () => process.env.LLM_API_KEY || 'lm-studio';
+
+// Timeouts for large models
 const LLM_HEADERS_TIMEOUT_MS = parseInt(process.env.LLM_HEADERS_TIMEOUT_MS || '900000', 10); // 15 min
 const LLM_BODY_TIMEOUT_MS = parseInt(process.env.LLM_BODY_TIMEOUT_MS || '1800000', 10);     // 30 min
 
-// Configure Native Ollama provider (bypasses OpenAI compatibility layer)
-const ollama = createOllama({
-    baseURL: getBaseURL() + '/api', // ollama-ai-provider expects base URL (often with /api)
+// Configure OpenAI-compatible provider (LM Studio)
+const openai = createOpenAI({
+    baseURL: getBaseURL(),
+    apiKey: getAPIKey(),
     fetch: (input, init) => {
-        console.log(`[Ollama Fetch] URL: ${input}`);
-        if (!input) {
-            console.error('[Ollama Fetch] CRITICAL: input is undefined!');
-            throw new Error('Ollama Fetch received undefined URL');
-        }
-        // Custom fetch payload to support extended timeouts
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), LLM_BODY_TIMEOUT_MS);
 
@@ -299,20 +297,14 @@ export async function POST(request: Request) {
         }
 
 
-        // Stream response - Hardcoded and optimized for Mistral Small (24B)
-        const modelName = 'mistral-small';
+        // Stream response - Uses model from env or default
+        const modelName = process.env.LLM_MODEL_NAME || 'mistral-small';
         console.log(`[Chat API] Starting stream with model: ${modelName}. Messages count: ${allMessages.length}`);
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
         try {
             const result = await streamText({
-                model: ollama(modelName, {
-                    numCtx: 8192,
-                    numGpu: 1,
-                    numPredict: 4096,
-                    numThread: 32, // Leveraging 96 vCores
-                    repeatPenalty: 1.1,
-                }) as any, // Cast to any to bypass version mismatch
+                model: openai(modelName),
                 messages: allMessages as any,
                 temperature: (assistant.temperature ?? 70) / 100,
                 maxTokens: 4096,
@@ -354,11 +346,11 @@ export async function POST(request: Request) {
         let userMessage = 'Ha ocurrido un error inesperado en el servidor.';
 
         if (message.includes('ECONNREFUSED')) {
-            userMessage = 'No se puede conectar con Ollama (ECONNREFUSED). Asegúrate de que esté corriendo (`ollama serve`). Si estás usando WSL/Docker, `localhost` no verá tu host Windows: configura `LLM_API_BASE_URL` en tu .env apuntando a `http://host.docker.internal:11434` o la IP local de tu PC.';
+            userMessage = `No se puede conectar con LM Studio (ECONNREFUSED). Asegúrate de que el servidor local esté activo en ${getBaseURL()} y que el modelo esté cargado.`;
         } else if (message.includes('Headers Timeout') || message.includes('HeadersTimeoutError')) {
-            userMessage = 'El modelo está tardando demasiado en responder (Timeout). Es posible que sea un modelo muy pesado (70b) y tu PC esté tardando en cargarlo en memoria.';
+            userMessage = 'El modelo está tardando demasiado en responder (Timeout). Es posible que sea un modelo muy pesado y LM Studio esté tardando en procesarlo.';
         } else if (message.includes('Cannot connect to API')) {
-            userMessage = 'Error de conexión con la API de IA. Verifica la URL y que el servicio esté activo.';
+            userMessage = 'Error de conexión con la API de LM Studio. Verifica la URL y que el servicio esté activo.';
         } else {
             userMessage = message;
         }

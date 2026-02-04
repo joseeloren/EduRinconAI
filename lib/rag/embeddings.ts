@@ -1,25 +1,30 @@
 import { Agent, fetch as undiciFetch } from 'undici';
 
 const getBaseURL = () => {
-    let url = process.env.LLM_API_BASE_URL || 'http://localhost:11434';
-    return url.replace(/\/+$/, '').replace(/\/v1$/, '');
+    let url = process.env.LLM_API_BASE_URL || 'http://localhost:1234/v1';
+    if (!url.endsWith('/v1')) {
+        url = url.replace(/\/+$/, '') + '/v1';
+    }
+    return url;
 };
 
-const EMBEDDING_MODEL = process.env.LLM_EMBEDDING_MODEL || 'nomic-embed-text';
+const getAPIKey = () => process.env.LLM_API_KEY || 'lm-studio';
+const EMBEDDING_MODEL = process.env.LLM_EMBEDDING_MODEL || 'text-embedding-nomic-embed-text-v1.5';
 const TIMEOUT_MS = 300000; // 5 minutes
 
 export async function generateEmbedding(text: string): Promise<number[]> {
     const baseURL = getBaseURL();
-    const url = `${baseURL}/api/embeddings`;
+    const url = `${baseURL}/embeddings`;
 
     const response = await undiciFetch(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getAPIKey()}`,
         },
         body: JSON.stringify({
             model: EMBEDDING_MODEL,
-            prompt: text,
+            input: text,
         }),
         dispatcher: new Agent({
             headersTimeout: TIMEOUT_MS,
@@ -30,11 +35,14 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 
     if (!response.ok) {
         const error = await response.text();
-        throw new Error(`Ollama embedding error: ${error}`);
+        throw new Error(`LM Studio embedding error: ${error}`);
     }
 
-    const data = (await response.json()) as { embedding: number[] };
-    return data.embedding;
+    const data = (await response.json()) as { data: { embedding: number[] }[] };
+    if (!data.data || !data.data[0] || !data.data[0].embedding) {
+        throw new Error('Invalid embedding response format from LM Studio');
+    }
+    return data.data[0].embedding;
 }
 
 export async function generateEmbeddings(texts: string[]): Promise<number[][]> {

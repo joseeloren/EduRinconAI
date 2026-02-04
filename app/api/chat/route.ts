@@ -5,6 +5,8 @@ import { eq, and, or, sql, desc } from 'drizzle-orm';
 import { generateEmbedding } from '@/lib/rag/embeddings';
 import { streamText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
+import { Agent, fetch as undiciFetch } from 'undici';
+import { canAccessAssistant } from '@/lib/auth/roles';
 
 // Helper to ensure baseURL is correct for LM Studio / OpenAI
 const getBaseURL = () => {

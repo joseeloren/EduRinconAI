@@ -305,14 +305,14 @@ export async function POST(request: Request) {
         console.log(`[Chat API] Base URL: ${getBaseURL()}`);
 
         try {
+            console.log(`[Chat API] Invoking streamText for model: ${modelName}`);
             const result = await streamText({
                 model: openai(modelName),
                 messages: allMessages as any,
                 temperature: (assistant.temperature ?? 70) / 100,
                 maxTokens: 4096,
-                // Add explicit error handling for the stream
                 onFinish: async ({ text }) => {
-                    console.log('[Chat API] Stream finished successfully');
+                    console.log(`[Chat API] Stream finished successfully. Length: ${text.length} chars`);
                     try {
                         // Save assistant message
                         await db.insert(messages).values({
@@ -320,6 +320,7 @@ export async function POST(request: Request) {
                             role: 'assistant',
                             content: text,
                         });
+                        console.log('[Chat API] Assistant message saved to DB');
                     } catch (dbError) {
                         console.error('[Chat API] Failed to save assistant message:', dbError);
                     }
@@ -365,7 +366,8 @@ export async function POST(request: Request) {
         return new Response(
             JSON.stringify({
                 error: 'Internal Server Error',
-                details: userMessage
+                details: userMessage,
+                rawError: message
             }),
             {
                 status: 500,

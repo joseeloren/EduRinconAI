@@ -3,6 +3,8 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
+        "api": "tsx api-server.ts",
+        "api:prod": "node --import tsx api-server.ts",
         "dev": "next dev --turbopack",
         "dev:80": "next dev --turbopack -p 80",
         "build": "next build",

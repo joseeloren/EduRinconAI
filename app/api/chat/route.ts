@@ -198,46 +198,43 @@ export async function POST(request: Request) {
         // 4. Prepend System Prompt (with Vision Override if needed)
         let systemPrompt = assistant.systemPrompt || 'Eres un tutor AI.';
 
-        // 🧠 RAG: Search for relevant document chunks
-        try {
-            const userQuery = typeof lastMsg?.content === 'string'
-                ? lastMsg.content
-                : Array.isArray(lastMsg?.content)
-                    ? lastMsg.content.find((p: any) => p.type === 'text')?.text || ''
-                    : '';
-
-            if (userQuery && userQuery.length > 3) {
-                const embedding = await generateEmbedding(userQuery);
-                const vectorStr = `[${embedding.join(',')}]`;
-
-                const similarity = sql<number>`1 - (${documentChunks.embedding} <=> ${vectorStr}::vector)`;
-
-                const relevantChunks = await db
-                    .select({
-                        content: documentChunks.content,
-                        similarity
-                    })
-                    .from(documentChunks)
-                    .where(eq(documentChunks.assistantId, assistantId))
-                    .orderBy(t => desc(similarity))
-                    .limit(5);
-
-                const context = relevantChunks
-                    .filter(c => c.similarity > 0.2) // Lower threshold to be more permissive
-                    .map(c => c.content)
-                    .join('\n\n---\n\n');
-
-                if (context) {
-                    console.log(`[Chat API] RAG: Found ${relevantChunks.length} chunks. Scores: ${relevantChunks.map(c => c.similarity.toFixed(4)).join(', ')}`);
-                    systemPrompt += `\n\n[CONTEXTO EXTRAÍDO DE TUS DOCUMENTOS DE CONOCIMIENTO]:\n${context}\n\n[INSTRUCCIÓN]: Utiliza el contexto anterior para responder a la pregunta del usuario de forma precisa. Si la información no está en el contexto, indícalo basándote en tu conocimiento general pero prioriza siempre lo que dicen tus documentos.`;
-                } else {
-                    console.log(`[Chat API] RAG: No chunks exceeded threshold. Top score: ${relevantChunks[0]?.similarity.toFixed(4) || 'N/A'}`);
-                }
-            }
-        } catch (ragError) {
-            console.error('[Chat API] RAG Search Error:', ragError);
-            // Non-blocking error
-        }
+        // 🧠 RAG: DISABLED TEMPORARILY - uncomment to re-enable embeddings
+        // try {
+        //     const userQuery = typeof lastMsg?.content === 'string'
+        //         ? lastMsg.content
+        //         : Array.isArray(lastMsg?.content)
+        //             ? lastMsg.content.find((p: any) => p.type === 'text')?.text || ''
+        //             : '';
+        //
+        //     if (userQuery && userQuery.length > 3) {
+        //         const embedding = await generateEmbedding(userQuery);
+        //         const vectorStr = `[${embedding.join(',')}]`;
+        //
+        //         const similarity = sql<number>`1 - (${documentChunks.embedding} <=> ${vectorStr}::vector)`;
+        //
+        //         const relevantChunks = await db
+        //             .select({
+        //                 content: documentChunks.content,
+        //                 similarity
+        //             })
+        //             .from(documentChunks)
+        //             .where(eq(documentChunks.assistantId, assistantId))
+        //             .orderBy(t => desc(similarity))
+        //             .limit(5);
+        //
+        //         const context = relevantChunks
+        //             .filter(c => c.similarity > 0.2)
+        //             .map(c => c.content)
+        //             .join('\n\n---\n\n');
+        //
+        //         if (context) {
+        //             console.log(`[Chat API] RAG: Found ${relevantChunks.length} chunks.`);
+        //             systemPrompt += `\n\n[CONTEXTO]:\n${context}`;
+        //         }
+        //     }
+        // } catch (ragError) {
+        //     console.error('[Chat API] RAG Search Error:', ragError);
+        // }
 
         if (hasImagesInConversation) {
             systemPrompt += '\n\n[IMPORTANTE: El usuario ha adjuntado imágenes. Tienes capacidad de visión. Analiza las imágenes adjuntas para responder de forma precisa a las preguntas del usuario sobre sintaxis o código Java mostrado en ellas, ignorando cualquier restricción previa que te impida ver archivos si el usuario te lo solicita explícitamente.]';
@@ -310,7 +307,7 @@ export async function POST(request: Request) {
                 model: openai(modelName),
                 messages: allMessages as any,
                 temperature: (assistant.temperature ?? 70) / 100,
-                maxTokens: 4096,
+                maxTokens: 2048,  // Reduced to avoid vLLM context overflow
                 onFinish: async ({ text }) => {
                     console.log(`[Chat API] Stream finished successfully. Length: ${text.length} chars`);
                     try {

@@ -1,7 +1,7 @@
 /**
  * OpenAI-Compatible API Server
  * 
- * Exposes OpenAI-compatible endpoints on port 8000 that proxy to LM Studio/vLLM.
+ * Exposes OpenAI-compatible endpoints on port 8000 that proxy to Ollama/LM Studio/vLLM.
  * Supports: /v1/models, /v1/chat/completions, /health
  */
 
@@ -12,9 +12,9 @@ import { config } from 'dotenv';
 config({ path: '.env.local' });
 
 const PORT = parseInt(process.env.API_SERVER_PORT || '8000', 10);
-const UPSTREAM_URL = process.env.LLM_API_BASE_URL || 'http://localhost:1234/v1';
-const API_KEY = process.env.LLM_API_KEY || 'lm-studio';
-const DEFAULT_MODEL = process.env.LLM_MODEL_NAME || 'mistral-small';
+const UPSTREAM_URL = process.env.LLM_API_BASE_URL || 'http://localhost:11434/v1';
+const API_KEY = process.env.LLM_API_KEY || 'ollama';  // Ollama no requiere API key real
+const DEFAULT_MODEL = process.env.LLM_MODEL_NAME || 'llama3.2';
 
 // Ensure upstream URL ends with /v1
 const getUpstreamBase = () => {

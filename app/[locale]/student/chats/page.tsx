@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { db } from '@/db';
 import { chats } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -11,11 +11,14 @@ import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 
-export default async function ChatsHistoryPage() {
+export default async function ChatsHistoryPage({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();
 
-    if (!session?.user || session.user.role !== 'STUDENT') {
-        redirect('/login');
+    const { locale } = await params;
+
+    if (!session || !session.user || session.user.role !== 'STUDENT') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     const userChats = await db.query.chats.findMany({

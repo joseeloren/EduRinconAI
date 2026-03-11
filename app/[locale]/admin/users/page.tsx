@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { Navbar } from '@/components/ui/navbar';
@@ -9,11 +9,13 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 
-export default async function UsersManagementPage() {
+export default async function UsersManagementPage({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();
+    const { locale } = await params;
 
-    if (!session?.user || session.user.role !== 'ADMIN') {
-        redirect('/login');
+    if (!session || !session.user || session.user.role !== 'ADMIN') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     const allUsers = await db.query.users.findMany({

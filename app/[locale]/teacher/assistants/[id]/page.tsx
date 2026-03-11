@@ -1,4 +1,4 @@
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { auth } from '@/auth';
 import { db } from '@/db';
 import { assistants } from '@/db/schema';
@@ -24,11 +24,12 @@ interface PageProps {
 }
 
 export default async function AssistantManagementPage({ params }: PageProps) {
-    const { id } = await params;
+    const { id, locale } = await params;
     const session = await auth();
 
-    if (!session?.user || session.user.role === 'STUDENT') {
-        redirect('/login');
+    if (!session || !session.user || session.user.role === 'STUDENT') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     const assistant = await db.query.assistants.findFirst({
@@ -45,7 +46,8 @@ export default async function AssistantManagementPage({ params }: PageProps) {
     });
 
     if (!assistant) {
-        redirect('/teacher');
+        redirect({ href: '/teacher', locale });
+        return;
     }
 
     // Check permissions
@@ -53,7 +55,8 @@ export default async function AssistantManagementPage({ params }: PageProps) {
         session.user.role !== 'ADMIN' &&
         assistant.createdById !== session.user.id
     ) {
-        redirect('/teacher');
+        redirect({ href: '/teacher', locale });
+        return;
     }
 
     async function handleUpdateAssistant(data: AssistantFormData) {
@@ -76,7 +79,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
             })
             .where(eq(assistants.id, id));
 
-        redirect('/teacher');
+        redirect({ href: '/teacher', locale });
     }
 
     async function handleDeleteAssistant() {
@@ -90,7 +93,7 @@ export default async function AssistantManagementPage({ params }: PageProps) {
         // Delete assistant
         await db.delete(assistants).where(eq(assistants.id, id));
 
-        redirect('/teacher');
+        redirect({ href: '/teacher', locale });
     }
 
     const t = await getTranslations('assistantManagement');

@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { db } from '@/db';
 import { users, assistants } from '@/db/schema';
 import { eq, count } from 'drizzle-orm';
@@ -7,11 +7,13 @@ import { Users, Bot, FileText, GraduationCap } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
 import { getTranslations } from 'next-intl/server';
 
-export default async function AdminDashboard() {
+export default async function AdminDashboard({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();
+    const { locale } = await params;
 
-    if (!session?.user || session.user.role !== 'ADMIN') {
-        redirect('/login');
+    if (!session || !session.user || session.user.role !== 'ADMIN') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     // Get statistics

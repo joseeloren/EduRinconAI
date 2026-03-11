@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AssistantForm } from '@/components/assistants/assistant-form';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { auth } from '@/auth';
 import { db } from '@/db';
 import { assistants } from '@/db/schema';
@@ -8,11 +8,13 @@ import type { AssistantFormData } from '@/components/assistants/assistant-form';
 import { Navbar } from '@/components/ui/navbar';
 import { getTranslations } from 'next-intl/server';
 
-export default async function CreateAssistantPage() {
+export default async function CreateAssistantPage({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();
+    const { locale } = await params;
 
-    if (!session?.user || session.user.role !== 'TEACHER') {
-        redirect('/login');
+    if (!session || !session.user || session.user.role !== 'TEACHER') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     const t = await getTranslations('createPage');
@@ -38,7 +40,7 @@ export default async function CreateAssistantPage() {
             })
             .returning();
 
-        redirect('/teacher');
+        redirect({ href: '/teacher', locale });
     }
 
     return (

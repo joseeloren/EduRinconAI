@@ -1,13 +1,15 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { Navbar } from '@/components/ui/navbar';
 import { UserForm } from '@/components/admin/user-form';
 
-export default async function CreateUserPage() {
+export default async function CreateUserPage({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();
+    const { locale } = await params;
 
-    if (!session?.user || session.user.role !== 'ADMIN') {
-        redirect('/login');
+    if (!session || !session.user || session.user.role !== 'ADMIN') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     return (

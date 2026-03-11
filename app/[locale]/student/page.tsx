@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { db } from '@/db';
 import { assistants, assistantAccess } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -8,11 +8,14 @@ import { Bot } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
 import { getTranslations } from 'next-intl/server';
 
-export default async function StudentDashboard() {
+export default async function StudentDashboard({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();
 
-    if (!session?.user || session.user.role !== 'STUDENT') {
-        redirect('/login');
+    const { locale } = await params;
+
+    if (!session || !session.user || session.user.role !== 'STUDENT') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     // Get assigned assistants for this student

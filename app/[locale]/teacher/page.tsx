@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { db } from '@/db';
 import { assistants } from '@/db/schema';
 import { eq, and, count } from 'drizzle-orm';
@@ -10,11 +10,13 @@ import { Plus, BookOpen, Users, Bot } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
 import { getTranslations } from 'next-intl/server';
 
-export default async function TeacherDashboard() {
+export default async function TeacherDashboard({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();
+    const { locale } = await params;
 
-    if (!session?.user || session.user.role !== 'TEACHER') {
-        redirect('/login');
+    if (!session || !session.user || session.user.role !== 'TEACHER') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     // Get teacher's assistants

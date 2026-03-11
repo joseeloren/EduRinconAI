@@ -1,5 +1,5 @@
 import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -9,15 +9,17 @@ import { UserForm } from '@/components/admin/user-form';
 interface PageProps {
     params: Promise<{
         id: string;
+        locale: string;
     }>;
 }
 
 export default async function EditUserPage({ params }: PageProps) {
-    const { id } = await params;
+    const { id, locale } = await params;
     const session = await auth();
 
-    if (!session?.user || session.user.role !== 'ADMIN') {
-        redirect('/login');
+    if (!session || !session.user || session.user.role !== 'ADMIN') {
+        redirect({ href: '/login', locale });
+        return;
     }
 
     const user = await db.query.users.findFirst({
@@ -31,7 +33,8 @@ export default async function EditUserPage({ params }: PageProps) {
     });
 
     if (!user) {
-        redirect('/admin/users');
+        redirect({ href: '/admin/users', locale });
+        return;
     }
 
     return (

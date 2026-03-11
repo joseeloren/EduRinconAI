@@ -9,7 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Slider } from '@/components/ui/slider';
-import { Captcha } from '@/components/ui/captcha';
 import { useTranslations } from 'next-intl';
 
 export interface AssistantFormData {
@@ -19,7 +18,6 @@ export interface AssistantFormData {
     systemPrompt: string;
     isPublic: boolean;
     temperature: number;
-    captchaToken?: string | null;
 }
 
 interface AssistantFormProps {
@@ -38,7 +36,6 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
     const [temperature, setTemperature] = useState(initialData?.temperature ?? 0.7);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -57,12 +54,6 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
             return;
         }
 
-        if (!isEditing && !captchaToken) {
-            setError('Por favor, completa el captcha');
-            setLoading(false);
-            return;
-        }
-
         try {
             await onSubmit({
                 id: initialData?.id,
@@ -71,7 +62,6 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                 systemPrompt,
                 isPublic,
                 temperature,
-                captchaToken,
             });
         } catch (error) {
             // Next.js redirect() throws a special error that should not be caught
@@ -195,8 +185,6 @@ export function AssistantForm({ initialData, onSubmit, isEditing = false }: Assi
                             {loading ? t('saving') : isEditing ? t('saveChanges') : t('createAssistant')}
                         </Button>
                     </div>
-
-                    {!isEditing && <Captcha onChange={setCaptchaToken} />}
                 </CardFooter>
             </Card>
         </form>

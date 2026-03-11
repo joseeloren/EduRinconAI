@@ -5,7 +5,7 @@ import { assistants } from '@/db/schema';
 import { eq, and, count } from 'drizzle-orm';
 import { AssistantCard } from '@/components/assistants/assistant-card';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Plus, BookOpen, Users, Bot } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
 import { getTranslations } from 'next-intl/server';

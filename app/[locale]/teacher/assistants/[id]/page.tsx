@@ -12,7 +12,7 @@ import { KnowledgeManager } from '@/components/assistants/knowledge-manager';
 import type { AssistantFormData } from '@/components/assistants/assistant-form';
 import { Button } from '@/components/ui/button';
 import { DeleteAssistantButton } from '@/components/assistants/delete-assistant-button';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ArrowLeft, MessageSquare } from 'lucide-react';
 import { Navbar } from '@/components/ui/navbar';
 import { getTranslations } from 'next-intl/server';

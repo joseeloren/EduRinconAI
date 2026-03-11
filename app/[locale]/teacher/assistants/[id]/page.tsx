@@ -20,6 +20,7 @@ import { getTranslations } from 'next-intl/server';
 interface PageProps {
     params: Promise<{
         id: string;
+        locale: string;
     }>;
 }
 

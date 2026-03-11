@@ -1,19 +1,19 @@
-import { redirect } from 'next/navigation';
+import { redirect } from '@/i18n/navigation';
 import { auth } from '@/auth';
 
 export default async function HomePage() {
     const session = await auth();
 
     if (!session?.user) {
-        redirect('/login');
+        redirect({ href: '/login' });
     }
 
     // Redirect based on role
     if (session.user.role === 'ADMIN') {
-        redirect('/admin');
+        redirect({ href: '/admin' });
     } else if (session.user.role === 'TEACHER') {
-        redirect('/teacher');
+        redirect({ href: '/teacher' });
     } else {
-        redirect('/student');
+        redirect({ href: '/student' });
     }
 }

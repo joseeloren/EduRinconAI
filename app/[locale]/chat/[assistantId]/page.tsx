@@ -5,7 +5,6 @@ import { db } from '@/db';
 import { assistants } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { ArrowLeft, FileText } from 'lucide-react';
 
 import { messages } from '@/db/schema';

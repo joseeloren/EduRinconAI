@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 export default async function UsersManagementPage({ params }: { params: Promise<{ locale: string }> }) {
     const session = await auth();

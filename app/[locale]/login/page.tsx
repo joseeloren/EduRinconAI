@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';

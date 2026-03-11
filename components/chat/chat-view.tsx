@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { ChatInterface } from './chat-interface';
 import { Avatar3DWrapper } from './avatar-scene';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { ArrowLeft, Share2, Check, GraduationCap } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { QuizModal } from './quiz-modal';

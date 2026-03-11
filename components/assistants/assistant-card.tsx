@@ -2,7 +2,7 @@ import { type Assistant } from '@/db/schema';
 import { Bot } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 
 interface AssistantCardProps {

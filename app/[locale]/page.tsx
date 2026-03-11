@@ -1,21 +1,19 @@
-import { redirect } from '@/i18n/navigation';
+import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 
-export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function HomePage() {
     const session = await auth();
-    const { locale } = await params;
 
-    if (!session || !session.user) {
-        redirect({ href: '/login', locale });
-        return;
+    if (!session?.user) {
+        redirect('/login');
     }
 
     // Redirect based on role
     if (session.user.role === 'ADMIN') {
-        redirect({ href: '/admin', locale });
+        redirect('/admin');
     } else if (session.user.role === 'TEACHER') {
-        redirect({ href: '/teacher', locale });
+        redirect('/teacher');
     } else {
-        redirect({ href: '/student', locale });
+        redirect('/student');
     }
 }

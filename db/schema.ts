@@ -111,6 +111,37 @@ export const documentChunks = pgTable('document_chunks', {
     createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Student Groups Table
+export const studentGroups = pgTable('student_groups', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Student Group Members (N:M Students <-> Groups)
+export const studentGroupMembers = pgTable('student_group_members', {
+    groupId: uuid('group_id').notNull().references(() => studentGroups.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    joinedAt: timestamp('joined_at').defaultNow().notNull(),
+});
+
+// Teacher Group Access (N:M Teachers <-> Groups)
+export const teacherGroupAccess = pgTable('teacher_group_access', {
+    groupId: uuid('group_id').notNull().references(() => studentGroups.id, { onDelete: 'cascade' }),
+    teacherId: uuid('teacher_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    grantedAt: timestamp('granted_at').defaultNow().notNull(),
+});
+
+// Assistant Group Access (N:M Assistants <-> Groups)
+export const assistantGroupAccess = pgTable('assistant_group_access', {
+    groupId: uuid('group_id').notNull().references(() => studentGroups.id, { onDelete: 'cascade' }),
+    assistantId: uuid('assistant_id').notNull().references(() => assistants.id, { onDelete: 'cascade' }),
+    grantedById: uuid('granted_by_id').notNull().references(() => users.id),
+    grantedAt: timestamp('granted_at').defaultNow().notNull(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
     accounts: many(accounts),
@@ -119,6 +150,8 @@ export const usersRelations = relations(users, ({ many }) => ({
     assignedAssistants: many(assistantAccess, { relationName: 'studentAssignments' }),
     grantedAssignments: many(assistantAccess, { relationName: 'granterAssignments' }),
     chats: many(chats),
+    groupMemberships: many(studentGroupMembers),
+    teacherGroups: many(teacherGroupAccess),
 }));
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -201,6 +234,49 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     }),
 }));
 
+export const studentGroupsRelations = relations(studentGroups, ({ many }) => ({
+    members: many(studentGroupMembers),
+    teachers: many(teacherGroupAccess),
+    assistants: many(assistantGroupAccess),
+}));
+
+export const studentGroupMembersRelations = relations(studentGroupMembers, ({ one }) => ({
+    group: one(studentGroups, {
+        fields: [studentGroupMembers.groupId],
+        references: [studentGroups.id],
+    }),
+    user: one(users, {
+        fields: [studentGroupMembers.userId],
+        references: [users.id],
+    }),
+}));
+
+export const teacherGroupAccessRelations = relations(teacherGroupAccess, ({ one }) => ({
+    group: one(studentGroups, {
+        fields: [teacherGroupAccess.groupId],
+        references: [studentGroups.id],
+    }),
+    teacher: one(users, {
+        fields: [teacherGroupAccess.teacherId],
+        references: [users.id],
+    }),
+}));
+
+export const assistantGroupAccessRelations = relations(assistantGroupAccess, ({ one }) => ({
+    group: one(studentGroups, {
+        fields: [assistantGroupAccess.groupId],
+        references: [studentGroups.id],
+    }),
+    assistant: one(assistants, {
+        fields: [assistantGroupAccess.assistantId],
+        references: [assistants.id],
+    }),
+    grantedBy: one(users, {
+        fields: [assistantGroupAccess.grantedById],
+        references: [users.id],
+    }),
+}));
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -214,3 +290,5 @@ export type AssistantDocument = typeof assistantDocuments.$inferSelect;
 export type NewAssistantDocument = typeof assistantDocuments.$inferInsert;
 export type DocumentChunk = typeof documentChunks.$inferSelect;
 export type NewDocumentChunk = typeof documentChunks.$inferInsert;
+export type StudentGroup = typeof studentGroups.$inferSelect;
+export type NewStudentGroup = typeof studentGroups.$inferInsert;

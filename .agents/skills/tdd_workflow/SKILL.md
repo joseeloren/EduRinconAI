@@ -19,6 +19,7 @@ Cuando el usuario te pida ejecutar `tdd-workflow` o realizar TDD para una especi
    - `tdd-plan` -> `tdd-red`
    - `tdd-red` -> `tdd-green`
    - `tdd-green` -> `tdd-refactor`
-   - `tdd-refactor` -> `tdd-integration`
+   - `tdd-refactor` -> `tdd-docs`
+   - `tdd-docs` -> `tdd-integration`
 
 ¡No te detengas hasta llegar al reporte final de `tdd-integration`, a menos que se requiera la intervención explícita del usuario (ej. para aprobar el plan en `tdd-plan`)!

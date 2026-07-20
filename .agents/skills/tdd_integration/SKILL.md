@@ -1,9 +1,9 @@
 ---
 name: tdd-integration
-description: Fase 4 del TDD Workflow. Commit y Push de los cambios.
+description: Fase 5 del TDD Workflow. Commit y Push de los cambios.
 ---
 
-# TDD Workflow: Fase 4 (Integración)
+# TDD Workflow: Fase 5 (Integración)
 
 Esta es la última fase del ciclo TDD. Integra los cambios al repositorio y genera el reporte.
 

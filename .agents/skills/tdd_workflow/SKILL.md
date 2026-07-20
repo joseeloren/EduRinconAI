@@ -21,5 +21,6 @@ Cuando el usuario te pida ejecutar `tdd-workflow` o realizar TDD para una especi
    - `tdd-green` -> `tdd-refactor`
    - `tdd-refactor` -> `tdd-docs`
    - `tdd-docs` -> `tdd-integration`
+   - `tdd-integration` -> `tdd-merge`
 
-¡No te detengas hasta llegar al reporte final de `tdd-integration`, a menos que se requiera la intervención explícita del usuario (ej. para aprobar el plan en `tdd-plan`)!
+¡No te detengas hasta llegar al reporte final de `tdd-merge`, a menos que se requiera la intervención explícita del usuario (ej. para aprobar el plan en `tdd-plan`, o esperar a que acabe la CI)!

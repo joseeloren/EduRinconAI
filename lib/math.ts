@@ -15,3 +15,13 @@ export function subtract(a: number, b: number): number {
 export function multiply(a: number, b: number): number {
     return a * b;
 }
+
+/**
+ * Divides two numbers.
+ * @param a First number
+ * @param b Second number
+ * @returns The quotient of a and b
+ */
+export function divide(a: number, b: number): number {
+    return a / b;
+}
